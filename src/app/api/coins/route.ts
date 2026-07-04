@@ -1,15 +1,7 @@
-// Static prices fallback — all real-time data is now fetched client-side
-import { coins } from "@/lib/data";
-import { NextResponse } from "next/server";
+// This file is intentionally minimal for static export.
+// All real-time data is fetched client-side.
+export const dynamic = "force-static";
 
 export async function GET() {
-  const prices: Record<string, number> = {};
-  for (const coin of coins) {
-    prices[coin.id] = coin.price;
-  }
-  return NextResponse.json(prices, {
-    headers: {
-      "Cache-Control": "public, max-age=3600, s-maxage=7200",
-    },
-  });
+  return Response.json({});
 }

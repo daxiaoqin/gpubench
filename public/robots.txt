@@ -1,0 +1,13 @@
+﻿User-Agent: *
+Allow: /
+Disallow: /api/
+
+User-Agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+User-Agent: YandexBot
+Allow: /
+Disallow: /api/
+
+Sitemap: https://gpubench.online/sitemap.xml
