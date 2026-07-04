@@ -89,7 +89,7 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
 // Default fallback values (used when live fetch fails)
 export const defaultNetworkData: Record<string, NetworkInfo> = {
   pearlhash: {
-    networkHashrate: 3700000, // TH/s — small coin, ~3.7M TH/s estimated network
+    networkHashrate: 2160000, // TH/s — estimated from real-world: 300 TH/s total → ~10 PRL/day
     dailyReward: 72000,
     unit: "TH/s",
     lastUpdated: null,
