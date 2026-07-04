@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchLiveNetworkData, defaultNetworkData, NetworkInfo } from "@/lib/networkData";
 
 // ─────────────────────── Coin Price ───────────────────────
-
-const COINGECKO_URL =
-  "https://api.coingecko.com/api/v3/simple/price?ids=pearl,alephium,ravencoin,kaspa,ethereum-classic,conflux,nexa&vs_currencies=usd&include_24hr_change=true";
+// All prices are fetched via server proxy (/api/coins) which uses CoinGecko.
+// For PRL, CoinGecko ID "pearl-2" reflects SafeTrade price (~$0.4).
 
 export function useLiveCoinData(intervalMs = 180_000) {
   const [data, setData] = useState<Record<string, { usd: number; usd_24h_change?: number }> | null>(null);
@@ -14,29 +13,14 @@ export function useLiveCoinData(intervalMs = 180_000) {
 
   const fetchPrices = useCallback(async () => {
     try {
-      // 1) Try server proxy (works even when CoinGecko is blocked from browser)
+      // Fetch from server proxy (works even when CoinGecko is blocked from browser)
       const proxyRes = await fetch("/api/coins", { signal: AbortSignal.timeout(6000) });
       if (proxyRes.ok) {
         const json = await proxyRes.json();
         setData(json);
-        setLoading(false);
-        return;
       }
     } catch {
-      // Fall through to direct CoinGecko
-    }
-
-    try {
-      // 2) Try CoinGecko directly
-      const res = await fetch(COINGECKO_URL, { signal: AbortSignal.timeout(8000) });
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
-      } else {
-        throw new Error(`HTTP ${res.status}`);
-      }
-    } catch {
-      // 3) Fail silently — components use static prices when data is null
+      // Fail silently — components use static prices when data is null
     } finally {
       setLoading(false);
     }
@@ -89,8 +73,6 @@ export function useNetworkData() {
         result[algoId] = { ...defaultNetworkData[algoId] };
       }
 
-      let success = false;
-
       // 2) Try server proxy
       try {
         const proxyRes = await fetch("/api/network", { signal: AbortSignal.timeout(8000) });
@@ -101,14 +83,15 @@ export function useNetworkData() {
               result[algoId] = json[algoId];
             }
           }
-          success = true;
         }
       } catch {
         // Fall through to direct fetchers
       }
 
       // 3) If server proxy failed, try direct block explorer fetchers
-      if (!success) {
+      if (!mounted) return;
+      const hasLiveData = Object.values(result).some((r) => r.source === "Live API");
+      if (!hasLiveData) {
         for (const algoId of Object.keys(defaultNetworkData)) {
           try {
             const live = await fetchLiveNetworkData(algoId);
