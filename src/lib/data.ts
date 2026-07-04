@@ -426,10 +426,16 @@ export function calcDailyRevenueWithLiveNetwork(
   networkHashrate: number,
   dailyReward: number
 ): { grossRevenue: number; powerCost: number; netProfit: number; efficiency: number } {
-  const hashrate = gpu.hashrates[algoId] ?? 0;
-  if (hashrate === 0 || networkHashrate <= 0) {
+  const stockHashrate = gpu.hashrates[algoId] ?? 0;
+  if (stockHashrate === 0 || networkHashrate <= 0) {
     return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
   }
+
+  // Scale hashrate based on power limit relative to stock TDP
+  // Linear approximation: 50% power → ~50% hashrate, 80% power → ~80% hashrate
+  // Real GPUs often have slightly better efficiency at lower power, but linear is a good estimate
+  const powerRatio = Math.min(1, Math.max(0.3, powerLimit / gpu.tdp));
+  const hashrate = stockHashrate * powerRatio;
 
   // GPU's share of the network
   const share = hashrate / networkHashrate;
@@ -438,7 +444,7 @@ export function calcDailyRevenueWithLiveNetwork(
   const dailyCoin = share * dailyReward;
   const grossRevenue = dailyCoin * coinPrice;
 
-  // Power cost
+  // Power cost (based on actual power limit)
   const dailyKwh = (powerLimit / 1000) * 24;
   const powerCost = dailyKwh * electricityCost;
 
