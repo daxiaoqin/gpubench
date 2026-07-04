@@ -1,11 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
-  images: {
-    unoptimized: true,
-  },
-  trailingSlash: true,
+  // Standard build — API routes return static data, all real-time fetching is client-side
 };
 
 export default nextConfig;
