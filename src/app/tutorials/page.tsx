@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 const tutorials = [
   {
     title: "What Is GPU Mining? A Complete Beginner's Guide",
@@ -110,10 +108,8 @@ export default function TutorialsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {tutorials.map((t) => (
-          <Link
-            key={t.slug}
-            href={`/tutorials/${t.slug}`}
-            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all"
+          <div
+            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all cursor-default"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs px-2 py-0.5 rounded-full bg-[--accent-green]/10 text-[--accent-green]">
@@ -126,7 +122,7 @@ export default function TutorialsPage() {
               {t.title}
             </h3>
             <p className="text-sm text-[--text-secondary]">{t.description}</p>
-          </Link>
+          </div>
         ))}
       </div>
 

@@ -446,32 +446,36 @@ export function calcDailyRevenueWithLivePrice(
     return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
   }
 
-  // Simplified revenue model based on coin price, network hashrate, block reward
-  // Network difficulty scalars (simplified — would use real API in production)
-  const networkScale: Record<string, number> = {
-    pearlhash: 91800000,  // ~91.8M TH/s network
-    blake3: 85000,        // GH/s
-    kawpow: 12,           // TH/s (12000 GH/s)
-    kheavyhash: 620,      // TH/s
-    etchash: 240,         // TH/s
-    octopus: 18,          // TH/s
-    nexapow: 8,           // TH/s
+  // Network hashrate in the SAME unit as the GPU hashrate (TH/s/GH/s/MH/s)
+  // and daily block rewards in native coin units
+  // Source: miningpoolstats.stream + CoinGecko
+  const algoParams: Record<string, { network: number; dailyReward: number }> = {
+    // PearlHash: GPU in TH/s, network in TH/s
+    pearlhash:  { network: 350000,   dailyReward: 72000 },       // ~350K TH/s, 72K PRL/day
+    // Blake3: GPU in GH/s, network in GH/s
+    blake3:     { network: 85000,    dailyReward: 225000 },      // ~85K GH/s, 225K ALPH/day
+    // KawPow: GPU in MH/s, network in MH/s
+    kawpow:     { network: 5000000,  dailyReward: 3600000 },     // ~5M MH/s (5 TH/s), 3.6M RVN/day
+    // kHeavyHash: GPU in GH/s, network in GH/s
+    kheavyhash: { network: 620000,   dailyReward: 8640000 },     // ~620K GH/s (620 TH/s), 8.64M KAS/day
+    // Etchash: GPU in MH/s, network in MH/s
+    etchash:    { network: 240000000, dailyReward: 108000 },     // ~240M MH/s (240 TH/s), 108K ETC/day
+    // Octopus: GPU in MH/s, network in MH/s
+    octopus:    { network: 18000000,  dailyReward: 2800000 },    // ~18M MH/s (18 TH/s), 2.8M CFX/day
+    // NexaPow: GPU in MH/s, network in MH/s
+    nexapow:    { network: 8000000,   dailyReward: 32000000000 },// ~8M MH/s (8 TH/s), 32B NEXA/day
   };
 
-  // Daily block rewards in coin units
-  const dailyRewards: Record<string, number> = {
-    pearlhash: 72000,     // ~72000 PRL/day total
-    blake3: 86400,        // ALPH/day
-    kawpow: 4600,         // RVN/day
-    kheavyhash: 7200000,  // KAS/day
-    etchash: 13000,       // ETC/day
-    octopus: 2800000,     // CFX/day
-    nexapow: 32000000000, // NEXA/day
-  };
+  const params = algoParams[algoId];
+  if (!params || params.network <= 0) {
+    return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
+  }
 
-  const netHash = networkScale[algoId] ?? 1;
-  const share = (algoId === "blake3" ? hashrate : hashrate) / (netHash * 1000);
-  const dailyCoin = share * (dailyRewards[algoId] ?? 0);
+  // GPU's share of the network
+  const share = hashrate / params.network;
+
+  // Daily coin earnings → USD
+  const dailyCoin = share * params.dailyReward;
   const grossRevenue = dailyCoin * coinPrice;
 
   // Power cost

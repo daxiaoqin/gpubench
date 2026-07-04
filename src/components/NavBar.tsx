@@ -1,0 +1,77 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
+const enNav = [
+  { href: "/", label: "Home" },
+  { href: "/gpus", label: "GPUs" },
+  { href: "/coins", label: "Coins" },
+  { href: "/miners", label: "Miners" },
+  { href: "/pools", label: "Pools" },
+  { href: "/tutorials", label: "Tutorials" },
+];
+
+const zhNav = [
+  { href: "/zh", label: "首页" },
+  { href: "/zh/gpus", label: "显卡" },
+  { href: "/zh/coins", label: "币种" },
+  { href: "/zh/miners", label: "矿工" },
+  { href: "/zh/pools", label: "矿池" },
+  { href: "/zh/tutorials", label: "教程" },
+];
+
+export default function NavBar() {
+  const pathname = usePathname();
+  const isZh = pathname.startsWith("/zh");
+  const nav = isZh ? zhNav : enNav;
+  const logoHref = isZh ? "/zh" : "/";
+
+  return (
+    <nav className="border-b border-[--border-color] bg-[--bg-secondary] sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <a href={logoHref} className="flex items-center gap-2 group shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[--accent-green] flex items-center justify-center font-bold text-sm group-hover:scale-105 transition-transform">
+              G
+            </div>
+            <span className="font-bold text-lg text-[--text-primary] hidden sm:inline">
+              GPUBench<span className="text-[--accent-green]">.online</span>
+            </span>
+          </a>
+
+          {/* Nav Links */}
+          <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto">
+            {nav.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all ${
+                  pathname === item.href
+                    ? "text-[--text-primary] bg-[--bg-card]"
+                    : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card]"
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
+            {/* CTA button */}
+            <a
+              href={isZh ? "/zh/calculator" : "/calculator"}
+              className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-[--accent-green] text-black hover:bg-green-400 transition-all whitespace-nowrap"
+            >
+              {isZh ? "计算器" : "Calculator"}
+            </a>
+            {/* Language Switcher */}
+            <a
+              href={isZh ? "/" : "/zh"}
+              className="ml-1 sm:ml-2 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-muted] border border-[--border-color] hover:text-[--text-primary] hover:border-[--accent-green]/30 transition-all whitespace-nowrap"
+            >
+              {isZh ? "English" : "中文"}
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
