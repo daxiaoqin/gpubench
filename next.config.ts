@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",       // Fully static — no Node.js runtime needed
+  // Standard build — all pages are static, no server-side API calls
   trailingSlash: true,
   images: { unoptimized: true },
 };
