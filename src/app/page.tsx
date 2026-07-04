@@ -1,10 +1,13 @@
 "use client";
 
-import { gpus, algorithms, coins, formatHashrate, formatNumber, calcDailyRevenue } from "@/lib/data";
+import { gpus, algorithms, coins as staticCoins, formatHashrate, formatNumber } from "@/lib/data";
+import { useLiveCoinData } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
 export default function HomePage() {
-  // Pick the top 6 GPUs sorted by efficiency on PearlHash
+  const { data: liveCoins, loading } = useLiveCoinData();
+
+  // Pick the top 8 GPUs sorted by efficiency on PearlHash
   const topGpus = [...gpus]
     .map((g) => ({
       ...g,
@@ -13,14 +16,23 @@ export default function HomePage() {
     .sort((a, b) => b.efficiency - a.efficiency)
     .slice(0, 8);
 
-  // Featured coins
-  const featuredCoins = coins.slice(0, 4);
+  // Use live data if available, fallback to static
+  const displayCoins = liveCoins || staticCoins.map((c) => ({
+    id: c.id,
+    name: c.name,
+    symbol: c.symbol,
+    price: c.price,
+    priceChange24h: c.priceChange24h,
+    marketCap: c.marketCap,
+    volume24h: c.volume24h,
+    lastUpdated: new Date().toISOString(),
+  }));
+  const featuredCoins = displayCoins.slice(0, 4);
 
   return (
     <div>
       {/* ─────── HERO ─────── */}
       <section className="relative overflow-hidden">
-        {/* Background effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-[--accent-green]/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-64 h-64 bg-[--accent-green]/5 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-96 h-96 bg-[--accent-blue]/5 rounded-full blur-3xl" />
@@ -29,7 +41,7 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[--accent-green]/10 border border-[--accent-green]/20 text-[--accent-green] text-sm mb-6 fade-in">
               <span className="w-2 h-2 rounded-full bg-[--accent-green] pulse-glow" />
-              Real-world GPU benchmark data
+              Real-world GPU benchmark data{!loading && liveCoins && <span className="text-[--text-muted]"> · Live prices</span>}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 fade-in">
               Find the{" "}
@@ -71,11 +83,13 @@ export default function HomePage() {
               <div className="text-sm text-[--text-muted]">Algorithms Supported</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[--accent-amber]}">{coins.length}</div>
+              <div className="text-2xl font-bold text-[--accent-amber]}">{staticCoins.length}</div>
               <div className="text-sm text-[--text-muted]">Coins Tracked</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[--accent-blue]}">Real-time</div>
+              <div className="text-2xl font-bold text-[--accent-blue]}">
+                {loading ? "Loading..." : "Live"}
+              </div>
               <div className="text-sm text-[--text-muted]">Market Data</div>
             </div>
           </div>
@@ -145,7 +159,9 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold">Market Overview</h2>
-            <p className="text-[--text-secondary] mt-1">Live prices & 24h change for mineable coins</p>
+            <p className="text-[--text-secondary] mt-1">
+              {loading ? "Loading prices..." : "Live prices from CoinGecko · updates every 5 min"}
+            </p>
           </div>
           <Link href="/coins" className="text-[--accent-green] hover:underline text-sm">
             View all →
@@ -153,45 +169,51 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {featuredCoins.map((coin) => (
-            <div
-              key={coin.id}
-              className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-                  style={{ backgroundColor: coin.color + "20", color: coin.color }}
-                >
-                  {coin.symbol.charAt(0)}
+          {featuredCoins.map((coin) => {
+            // Match static coin data for color & algorithm info
+            const staticCoin = staticCoins.find((c) => c.id === coin.id);
+            return (
+              <div
+                key={coin.id}
+                className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
+                    style={{ backgroundColor: (staticCoin?.color ?? "#22c55e") + "20", color: staticCoin?.color ?? "#22c55e" }}
+                  >
+                    {coin.symbol.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{coin.name}</div>
+                    <div className="text-xs text-[--text-muted]">{coin.symbol} · {staticCoin?.algorithm ?? "Mineable"}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold">{coin.name}</div>
-                  <div className="text-xs text-[--text-muted]">{coin.symbol} · {coin.algorithm}</div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[--text-muted]">Price</span>
+                    <span className="font-mono">
+                      ${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[--text-muted]">24h Change</span>
+                    <span className={`font-mono ${coin.priceChange24h >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
+                      {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[--text-muted]">Market Cap</span>
+                    <span className="font-mono">${formatNumber(coin.marketCap)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[--text-muted]">24h Volume</span>
+                    <span className="font-mono">${formatNumber(coin.volume24h)}</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">Price</span>
-                  <span className="font-mono">${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">24h Change</span>
-                  <span className={`font-mono ${coin.priceChange24h >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
-                    {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">Market Cap</span>
-                  <span className="font-mono">${formatNumber(coin.marketCap)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">24h Volume</span>
-                  <span className="font-mono">${formatNumber(coin.volume24h)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

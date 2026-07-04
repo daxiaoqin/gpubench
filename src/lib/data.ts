@@ -418,27 +418,35 @@ export function formatHashrate(value: number, unit: string): string {
 }
 
 // Helper: calculate daily mining revenue for a GPU on a given algo
+// Uses the static coin price from data.ts (fallback)
 export function calcDailyRevenue(
   gpu: GpuData,
   algoId: string,
   powerLimit: number,
   electricityCost: number // USD per kWh
 ): { grossRevenue: number; powerCost: number; netProfit: number; efficiency: number } {
-  const algo = algorithms.find((a) => a.id === algoId);
   const coin = getCoinByAlgorithm(algoId);
-  if (!algo || !coin) {
+  if (!coin) {
     return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
   }
+  return calcDailyRevenueWithLivePrice(gpu, algoId, powerLimit, electricityCost, coin.price);
+}
 
+// Helper: calculate daily mining revenue with a LIVE coin price
+// Use this when you have real-time price data from the API
+export function calcDailyRevenueWithLivePrice(
+  gpu: GpuData,
+  algoId: string,
+  powerLimit: number,
+  electricityCost: number, // USD per kWh
+  coinPrice: number       // live coin price in USD
+): { grossRevenue: number; powerCost: number; netProfit: number; efficiency: number } {
   const hashrate = gpu.hashrates[algoId] ?? 0;
   if (hashrate === 0) {
     return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
   }
 
   // Simplified revenue model based on coin price, network hashrate, block reward
-  // This is a rough estimation — real revenue depends on pool luck & network difficulty
-  // We use a simplified calculation: (your hash / net hash) * blocks per day * block reward * price
-
   // Network difficulty scalars (simplified — would use real API in production)
   const networkScale: Record<string, number> = {
     pearlhash: 91800000,  // ~91.8M TH/s network
@@ -462,20 +470,16 @@ export function calcDailyRevenue(
   };
 
   const netHash = networkScale[algoId] ?? 1;
-  const netHashNormalized = algoId === "blake3" ? netHash : netHash * 1000; // normalize to base unit
-
-  const gpuHashNormalized = algoId === "blake3" ? hashrate : hashrate;
-
-  const share = gpuHashNormalized / (netHash * 1000);
+  const share = (algoId === "blake3" ? hashrate : hashrate) / (netHash * 1000);
   const dailyCoin = share * (dailyRewards[algoId] ?? 0);
-  const grossRevenue = dailyCoin * coin.price;
+  const grossRevenue = dailyCoin * coinPrice;
 
   // Power cost
   const dailyKwh = (powerLimit / 1000) * 24;
   const powerCost = dailyKwh * electricityCost;
 
   const netProfit = Math.max(0, grossRevenue - powerCost);
-  const efficiency = powerLimit > 0 ? (hashrate / powerLimit) * 1000 : 0; // efficiency score
+  const efficiency = powerLimit > 0 ? (hashrate / powerLimit) * 1000 : 0;
 
   return {
     grossRevenue,

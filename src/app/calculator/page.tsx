@@ -4,15 +4,27 @@ import { useState, useMemo, useEffect } from "react";
 import {
   gpus,
   algorithms,
-  getAlgorithmName,
+  coins as staticCoins,
   formatHashrate,
   formatNumber,
-  calcDailyRevenue,
-  CoinData,
+  calcDailyRevenueWithLivePrice,
 } from "@/lib/data";
+import { useLiveCoinData, getCoinPrice } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
+// Map algorithm ID to coin ID for price lookup
+const algoToCoinId: Record<string, string> = {
+  pearlhash: "pearl",
+  blake3: "alephium",
+  kawpow: "ravencoin",
+  kheavyhash: "kaspa",
+  etchash: "ethereum-classic",
+  octopus: "conflux",
+  nexapow: "nexa",
+};
+
 export default function CalculatorPage() {
+  const { data: liveCoins } = useLiveCoinData();
   const [selectedGpuId, setSelectedGpuId] = useState("rtx-5080");
   const [selectedAlgoId, setSelectedAlgoId] = useState("pearlhash");
   const [powerLimit, setPowerLimit] = useState(260);
@@ -34,6 +46,11 @@ export default function CalculatorPage() {
   const selectedGpu = gpus.find((g) => g.id === selectedGpuId);
   const algo = algorithms.find((a) => a.id === selectedAlgoId);
 
+  // Get live coin price for the selected algorithm
+  const coinId = algoToCoinId[selectedAlgoId];
+  const liveCoin = getCoinPrice(liveCoins, coinId);
+  const coinPrice = liveCoin?.price ?? staticCoins.find((c) => c.id === coinId)?.price ?? 0;
+
   // Update power limit slider when GPU changes
   useEffect(() => {
     if (selectedGpu) {
@@ -43,8 +60,8 @@ export default function CalculatorPage() {
 
   const result = useMemo(() => {
     if (!selectedGpu || !algo) return null;
-    return calcDailyRevenue(selectedGpu, selectedAlgoId, powerLimit, electricityCost);
-  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost]);
+    return calcDailyRevenueWithLivePrice(selectedGpu, selectedAlgoId, powerLimit, electricityCost, coinPrice);
+  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost, coinPrice]);
 
   // Top 5 GPUs for this algorithm
   const topForAlgo = useMemo(() => {
@@ -53,11 +70,12 @@ export default function CalculatorPage() {
         ...g,
         hash: g.hashrates[selectedAlgoId] ?? 0,
         eff: g.tdp > 0 ? ((g.hashrates[selectedAlgoId] ?? 0) / g.tdp) * 1000 : 0,
+        daily: calcDailyRevenueWithLivePrice(g, selectedAlgoId, g.tdp, electricityCost, coinPrice),
       }))
       .filter((g) => g.hash > 0)
-      .sort((a, b) => b.hash - a.hash)
+      .sort((a, b) => b.daily.netProfit - a.daily.netProfit)
       .slice(0, 5);
-  }, [selectedAlgoId]);
+  }, [selectedAlgoId, electricityCost, coinPrice]);
 
   const monthlyNet = result ? result.netProfit * 30 * gpuCount : 0;
   const yearlyNet = result ? result.netProfit * 365 * gpuCount : 0;
@@ -68,6 +86,7 @@ export default function CalculatorPage() {
         <h1 className="text-3xl font-bold">Mining Profitability Calculator</h1>
         <p className="text-[--text-secondary] mt-1">
           Estimate daily profit for any GPU and algorithm combination.
+          {liveCoin && <span className="text-[--accent-green]"> Live prices active.</span>}
         </p>
       </div>
 
@@ -124,6 +143,21 @@ export default function CalculatorPage() {
               </select>
             </div>
 
+            {/* Live Price Display */}
+            {liveCoin && (
+              <div className="bg-[--bg-secondary] rounded-lg p-3 flex items-center justify-between">
+                <span className="text-sm text-[--text-muted]">{algo?.symbol} Price</span>
+                <span className="font-mono font-semibold text-[--accent-green]">
+                  ${liveCoin.price < 0.01 ? liveCoin.price.toFixed(6) : liveCoin.price.toFixed(4)}
+                  <span className={`ml-1 text-xs ${
+                    (liveCoin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                  }`}>
+                    {(liveCoin.priceChange24h ?? 0) >= 0 ? "+" : ""}{liveCoin.priceChange24h?.toFixed(1)}%
+                  </span>
+                </span>
+              </div>
+            )}
+
             {/* Power Limit */}
             <div>
               <div className="flex justify-between text-sm mb-1.5">
@@ -149,9 +183,7 @@ export default function CalculatorPage() {
 
             {/* Electricity Cost */}
             <div>
-              <label className="block text-sm text-[--text-muted] mb-1.5">
-                Electricity Cost
-              </label>
+              <label className="block text-sm text-[--text-muted] mb-1.5">Electricity Cost</label>
               <div className="flex items-center gap-2">
                 <span className="text-[--text-muted]">$</span>
                 <input
@@ -192,6 +224,7 @@ export default function CalculatorPage() {
                   <h2 className="text-xl font-bold">{selectedGpu.name}</h2>
                   <p className="text-[--text-secondary] text-sm">
                     {algo.name} · {gpuCount} GPU{gpuCount > 1 ? "s" : ""} · {powerLimit}W
+                    {liveCoin && <span className="text-[--accent-green] ml-2">● Live</span>}
                   </p>
                 </div>
                 <div className="text-right">
@@ -268,16 +301,16 @@ export default function CalculatorPage() {
                 <div>
                   <span className="text-[--text-muted]">Break-even Price</span>
                   <div className="font-mono font-semibold">
-                    ${(result.powerCost / result.grossRevenue * (selectedGpu.hashrates[selectedAlgoId] ?? 1)).toFixed(4)}
+                    ${coinPrice > 0 ? (result.powerCost / result.grossRevenue * coinPrice).toFixed(4) : "N/A"}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Top GPUs for this algorithm */}
+          {/* Top GPUs for this algorithm by profit */}
           <div className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5">
-            <h3 className="font-semibold mb-3">Top GPUs for {algo?.name ?? ""}</h3>
+            <h3 className="font-semibold mb-3">Most Profitable GPUs for {algo?.name ?? ""}</h3>
             <div className="space-y-2">
               {topForAlgo.map((g, i) => (
                 <button
@@ -292,16 +325,17 @@ export default function CalculatorPage() {
                       : "bg-[--bg-secondary] border border-transparent hover:bg-[--bg-card-hover]"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-[--text-muted] w-4">#{i + 1}</span>
-                    <span className="font-medium">{g.name}</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[--text-muted] w-4 shrink-0">#{i + 1}</span>
+                    <span className="font-medium truncate">{g.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="font-mono text-[--accent-green]">
                       {formatHashrate(g.hash, algo?.unit ?? "")}
                     </span>
-                    <span className="text-[--text-muted] w-16 text-right">{g.tdp}W</span>
-                    <span className="text-[--accent-blue] w-12 text-right">{g.eff.toFixed(0)}</span>
+                    <span className="font-mono text-xs" style={{ color: g.daily.netProfit > 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                      ${g.daily.netProfit.toFixed(4)}/d
+                    </span>
                   </div>
                 </button>
               ))}
@@ -316,7 +350,7 @@ export default function CalculatorPage() {
                 <div className="text-sm text-[--text-secondary] space-y-2">
                   <p>
                     Based on <strong className="text-[--text-primary]">${selectedGpu.price.toLocaleString()}</strong> GPU price,
-                    <strong className="text-[--text-primary]"> ${(result.netProfit * gpuCount).toFixed(4)}/day</strong> net profit:
+                    <strong className="text-[--text-primary]"> ${(result.netProfit * gpuCount).toFixed(4)}/day</strong> net profit{liveCoin ? " (live prices)" : ""}:
                   </p>
                   <div className="flex items-center gap-4 mt-3">
                     <div className="flex-1 bg-[--bg-secondary] rounded-full h-3 overflow-hidden">
@@ -339,7 +373,7 @@ export default function CalculatorPage() {
                 </div>
               ) : (
                 <p className="text-sm text-[--accent-red]">
-                  This setup is not profitable at the current electricity cost.
+                  This setup is not profitable at the current electricity cost and coin price.
                 </p>
               )}
             </div>

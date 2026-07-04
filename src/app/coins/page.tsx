@@ -1,20 +1,51 @@
 "use client";
 
-import { coins, algorithms, formatNumber } from "@/lib/data";
+import { coins as staticCoins, algorithms, formatNumber } from "@/lib/data";
+import { useLiveCoinData } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
 export default function CoinsPage() {
+  const { data: liveCoins, loading, refetch } = useLiveCoinData(5 * 60 * 1000);
+
+  // Use live data if available, fallback to static
+  const displayCoins = liveCoins || staticCoins.map((c) => ({
+    id: c.id,
+    name: c.name,
+    symbol: c.symbol,
+    price: c.price,
+    priceChange24h: c.priceChange24h,
+    marketCap: c.marketCap,
+    volume24h: c.volume24h,
+    lastUpdated: new Date().toISOString(),
+  }));
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Mineable Coins</h1>
-        <p className="text-[--text-secondary] mt-1">
-          Real-time market data for proof-of-work coins. Prices update every 5 minutes via CoinGecko.
-        </p>
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Mineable Coins</h1>
+          <p className="text-[--text-secondary] mt-1">
+            {loading
+              ? "Loading live prices..."
+              : "Real-time prices via CoinGecko · updates every 5 minutes"}
+          </p>
+        </div>
+        {!loading && (
+          <button
+            onClick={refetch}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[--bg-card] border border-[--border-color] text-sm text-[--text-secondary] hover:text-[--text-primary] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {coins.map((coin) => {
+        {displayCoins.map((coin) => {
+          const staticCoin = staticCoins.find((c) => c.id === coin.id);
           const algo = algorithms.find((a) => a.symbol === coin.symbol);
 
           return (
@@ -26,7 +57,7 @@ export default function CoinsPage() {
               <div className="flex items-center gap-4 mb-5">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
-                  style={{ backgroundColor: coin.color + "20", color: coin.color }}
+                  style={{ backgroundColor: (staticCoin?.color ?? "#22c55e") + "20", color: staticCoin?.color ?? "#22c55e" }}
                 >
                   {coin.symbol.charAt(0)}
                 </div>
@@ -38,7 +69,7 @@ export default function CoinsPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[--text-muted]">
-                    <span className="font-medium text-[--accent-green]">{coin.algorithm}</span>
+                    <span className="font-medium text-[--accent-green]">{staticCoin?.algorithm ?? algo?.name ?? "PoW"}</span>
                     <span>·</span>
                     <span>GPU Mineable</span>
                   </div>
@@ -51,9 +82,9 @@ export default function CoinsPage() {
                   ${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}
                 </span>
                 <span className={`text-sm font-medium ${
-                  coin.priceChange24h >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                  (coin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
                 }`}>
-                  {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h}%
+                  {(coin.priceChange24h ?? 0) >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1) ?? "0.0"}%
                 </span>
               </div>
 
@@ -69,8 +100,8 @@ export default function CoinsPage() {
                 </div>
                 {algo && (
                   <div className="flex justify-between">
-                    <span className="text-[--text-muted]">Hashrate Unit</span>
-                    <span className="font-mono">{coin.hashrateUnit}</span>
+                    <span className="text-[--text-muted]">Algorithm</span>
+                    <span className="font-mono">{algo.name}</span>
                   </div>
                 )}
               </div>
