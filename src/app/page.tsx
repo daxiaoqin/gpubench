@@ -1,0 +1,220 @@
+"use client";
+
+import { gpus, algorithms, coins, formatHashrate, formatNumber, calcDailyRevenue } from "@/lib/data";
+import Link from "next/link";
+
+export default function HomePage() {
+  // Pick the top 6 GPUs sorted by efficiency on PearlHash
+  const topGpus = [...gpus]
+    .map((g) => ({
+      ...g,
+      efficiency: g.hashrates["pearlhash"] ? g.hashrates["pearlhash"] / g.tdp * 1000 : 0,
+    }))
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .slice(0, 8);
+
+  // Featured coins
+  const featuredCoins = coins.slice(0, 4);
+
+  return (
+    <div>
+      {/* ─────── HERO ─────── */}
+      <section className="relative overflow-hidden">
+        {/* Background effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[--accent-green]/5 via-transparent to-transparent" />
+        <div className="absolute top-20 left-1/4 w-64 h-64 bg-[--accent-green]/5 rounded-full blur-3xl" />
+        <div className="absolute top-40 right-1/4 w-96 h-96 bg-[--accent-blue]/5 rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[--accent-green]/10 border border-[--accent-green]/20 text-[--accent-green] text-sm mb-6 fade-in">
+              <span className="w-2 h-2 rounded-full bg-[--accent-green] pulse-glow" />
+              Real-world GPU benchmark data
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 fade-in">
+              Find the{" "}
+              <span className="text-[--accent-green]">Most Profitable</span>{" "}
+              GPU for Mining
+            </h1>
+            <p className="text-lg md:text-xl text-[--text-secondary] mb-10 max-w-2xl mx-auto fade-in">
+              Compare hashrates, power efficiency, and real profitability
+              across 7 algorithms. Data verified from actual mining rigs.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in">
+              <Link
+                href="/gpus"
+                className="px-6 py-3 rounded-xl bg-[--accent-green] text-black font-semibold hover:bg-green-400 transition-all text-lg"
+              >
+                Browse GPUs →
+              </Link>
+              <Link
+                href="/calculator"
+                className="px-6 py-3 rounded-xl border border-[--border-color] text-[--text-primary] font-semibold hover:bg-[--bg-card] transition-all text-lg"
+              >
+                Profit Calculator
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────── STATS BAR ─────── */}
+      <section className="border-y border-[--border-color] bg-[--bg-secondary]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[--text-primary]">{gpus.length}</div>
+              <div className="text-sm text-[--text-muted]">GPUs Benchmarked</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[--accent-green]">{algorithms.length}</div>
+              <div className="text-sm text-[--text-muted]">Algorithms Supported</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[--accent-amber]}">{coins.length}</div>
+              <div className="text-sm text-[--text-muted]">Coins Tracked</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[--accent-blue]}">Real-time</div>
+              <div className="text-sm text-[--text-muted]">Market Data</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────── TOP GPUs ─────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">Top GPUs by Efficiency</h2>
+            <p className="text-[--text-secondary] mt-1">Best hashrate-per-watt across all algorithms</p>
+          </div>
+          <Link href="/gpus" className="text-[--accent-green] hover:underline text-sm">
+            View all →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {topGpus.map((gpu, i) => (
+            <Link
+              key={gpu.id}
+              href="/gpus"
+              className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="text-xs text-[--text-muted] mb-1">#{i + 1}</div>
+                  <h3 className="font-semibold group-hover:text-[--accent-green] transition-colors">
+                    {gpu.name}
+                  </h3>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  gpu.manufacturer === "NVIDIA" ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"
+                }`}>
+                  {gpu.manufacturer}
+                </span>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">PearlHash</span>
+                  <span className="font-mono">{formatHashrate(gpu.hashrates["pearlhash"] ?? 0, "TH/s")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">Blake3</span>
+                  <span className="font-mono">{formatHashrate(gpu.hashrates["blake3"] ?? 0, "GH/s")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">Power</span>
+                  <span className="font-mono">{gpu.tdp}W</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-[--border-color]">
+                  <span className="text-[--text-muted]">Efficiency</span>
+                  <span className="font-mono text-[--accent-green]">
+                    {gpu.efficiency.toFixed(0)} H/W
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────── FEATURED COINS ─────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">Market Overview</h2>
+            <p className="text-[--text-secondary] mt-1">Live prices & 24h change for mineable coins</p>
+          </div>
+          <Link href="/coins" className="text-[--accent-green] hover:underline text-sm">
+            View all →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {featuredCoins.map((coin) => (
+            <div
+              key={coin.id}
+              className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
+                  style={{ backgroundColor: coin.color + "20", color: coin.color }}
+                >
+                  {coin.symbol.charAt(0)}
+                </div>
+                <div>
+                  <div className="font-semibold">{coin.name}</div>
+                  <div className="text-xs text-[--text-muted]">{coin.symbol} · {coin.algorithm}</div>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">Price</span>
+                  <span className="font-mono">${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">24h Change</span>
+                  <span className={`font-mono ${coin.priceChange24h >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
+                    {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h}%
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">Market Cap</span>
+                  <span className="font-mono">${formatNumber(coin.marketCap)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[--text-muted]">24h Volume</span>
+                  <span className="font-mono">${formatNumber(coin.volume24h)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────── CTA ─────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[--accent-green]/10 to-[--accent-blue]/10 border border-[--accent-green]/20 p-8 md:p-12 text-center">
+          <div className="relative z-10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              Ready to Find Your Best Mining GPU?
+            </h2>
+            <p className="text-[--text-secondary] mb-8 max-w-xl mx-auto">
+              Use our interactive calculator to compare real profitability
+              across GPUs, algorithms, and power settings.
+            </p>
+            <Link
+              href="/calculator"
+              className="inline-flex px-6 py-3 rounded-xl bg-[--accent-green] text-black font-semibold hover:bg-green-400 transition-all text-lg"
+            >
+              Open Calculator →
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

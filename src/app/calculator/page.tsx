@@ -1,0 +1,351 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import {
+  gpus,
+  algorithms,
+  getAlgorithmName,
+  formatHashrate,
+  formatNumber,
+  calcDailyRevenue,
+  CoinData,
+} from "@/lib/data";
+import Link from "next/link";
+
+export default function CalculatorPage() {
+  const [selectedGpuId, setSelectedGpuId] = useState("rtx-5080");
+  const [selectedAlgoId, setSelectedAlgoId] = useState("pearlhash");
+  const [powerLimit, setPowerLimit] = useState(260);
+  const [electricityCost, setElectricityCost] = useState(0.08);
+  const [gpuCount, setGpuCount] = useState(1);
+
+  // Handle URL param for coin
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const coinParam = params.get("coin");
+    if (coinParam) {
+      const matched = algorithms.find(
+        (a) => a.symbol.toLowerCase() === coinParam.toLowerCase()
+      );
+      if (matched) setSelectedAlgoId(matched.id);
+    }
+  }, []);
+
+  const selectedGpu = gpus.find((g) => g.id === selectedGpuId);
+  const algo = algorithms.find((a) => a.id === selectedAlgoId);
+
+  // Update power limit slider when GPU changes
+  useEffect(() => {
+    if (selectedGpu) {
+      setPowerLimit(selectedGpu.tdp);
+    }
+  }, [selectedGpuId]);
+
+  const result = useMemo(() => {
+    if (!selectedGpu || !algo) return null;
+    return calcDailyRevenue(selectedGpu, selectedAlgoId, powerLimit, electricityCost);
+  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost]);
+
+  // Top 5 GPUs for this algorithm
+  const topForAlgo = useMemo(() => {
+    return [...gpus]
+      .map((g) => ({
+        ...g,
+        hash: g.hashrates[selectedAlgoId] ?? 0,
+        eff: g.tdp > 0 ? ((g.hashrates[selectedAlgoId] ?? 0) / g.tdp) * 1000 : 0,
+      }))
+      .filter((g) => g.hash > 0)
+      .sort((a, b) => b.hash - a.hash)
+      .slice(0, 5);
+  }, [selectedAlgoId]);
+
+  const monthlyNet = result ? result.netProfit * 30 * gpuCount : 0;
+  const yearlyNet = result ? result.netProfit * 365 * gpuCount : 0;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Mining Profitability Calculator</h1>
+        <p className="text-[--text-secondary] mt-1">
+          Estimate daily profit for any GPU and algorithm combination.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ─────── Controls Panel ─────── */}
+        <div className="lg:col-span-1 space-y-5">
+          <div className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5 space-y-5">
+            <h2 className="font-semibold text-lg">Settings</h2>
+
+            {/* GPU Select */}
+            <div>
+              <label className="block text-sm text-[--text-muted] mb-1.5">GPU</label>
+              <select
+                value={selectedGpuId}
+                onChange={(e) => setSelectedGpuId(e.target.value)}
+                className="w-full"
+              >
+                <optgroup label="NVIDIA RTX 50 Series">
+                  {gpus.filter(g => g.manufacturer === "NVIDIA" && g.releaseYear >= 2026).map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="NVIDIA RTX 40 Series">
+                  {gpus.filter(g => g.manufacturer === "NVIDIA" && g.releaseYear >= 2022 && g.releaseYear < 2026).map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="NVIDIA RTX 30 Series">
+                  {gpus.filter(g => g.manufacturer === "NVIDIA" && g.releaseYear < 2022).map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="AMD Radeon">
+                  {gpus.filter(g => g.manufacturer === "AMD").map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+
+            {/* Algorithm Select */}
+            <div>
+              <label className="block text-sm text-[--text-muted] mb-1.5">Algorithm</label>
+              <select
+                value={selectedAlgoId}
+                onChange={(e) => setSelectedAlgoId(e.target.value)}
+                className="w-full"
+              >
+                {algorithms.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} ({a.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Power Limit */}
+            <div>
+              <div className="flex justify-between text-sm mb-1.5">
+                <label className="text-[--text-muted]">Power Limit</label>
+                <span className="font-mono font-medium">{powerLimit}W</span>
+              </div>
+              {selectedGpu && (
+                <input
+                  type="range"
+                  min={Math.round(selectedGpu.tdp * 0.5)}
+                  max={selectedGpu.tdp}
+                  step={5}
+                  value={powerLimit}
+                  onChange={(e) => setPowerLimit(Number(e.target.value))}
+                  className="w-full"
+                />
+              )}
+              <div className="flex justify-between text-xs text-[--text-muted]">
+                <span>{selectedGpu ? Math.round(selectedGpu.tdp * 0.5) : 0}W</span>
+                <span>{selectedGpu?.tdp ?? 0}W</span>
+              </div>
+            </div>
+
+            {/* Electricity Cost */}
+            <div>
+              <label className="block text-sm text-[--text-muted] mb-1.5">
+                Electricity Cost
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-[--text-muted]">$</span>
+                <input
+                  type="number"
+                  value={electricityCost}
+                  onChange={(e) => setElectricityCost(Math.max(0, Number(e.target.value)))}
+                  step="0.005"
+                  min="0"
+                  max="1"
+                  className="w-full"
+                />
+                <span className="text-[--text-muted] text-sm">/ kWh</span>
+              </div>
+            </div>
+
+            {/* GPU Count */}
+            <div>
+              <label className="block text-sm text-[--text-muted] mb-1.5">GPU Count</label>
+              <input
+                type="number"
+                value={gpuCount}
+                onChange={(e) => setGpuCount(Math.max(1, Math.min(100, Number(e.target.value))))}
+                min="1"
+                max="100"
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ─────── Results Panel ─────── */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Main result card */}
+          {result && selectedGpu && algo && (
+            <div className="bg-[--bg-card] border border-[--border-color] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold">{selectedGpu.name}</h2>
+                  <p className="text-[--text-secondary] text-sm">
+                    {algo.name} · {gpuCount} GPU{gpuCount > 1 ? "s" : ""} · {powerLimit}W
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-[--text-muted]">Hashrate</div>
+                  <div className="text-lg font-bold text-[--accent-green] font-mono">
+                    {formatHashrate(selectedGpu.hashrates[selectedAlgoId] ?? 0, algo.unit)}
+                    {gpuCount > 1 && (
+                      <span className="text-sm text-[--text-muted]">
+                        {" "}(×{gpuCount})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Revenue breakdown */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div className="bg-[--bg-secondary] rounded-lg p-4">
+                  <div className="text-xs text-[--text-muted] mb-1">Gross Revenue</div>
+                  <div className="text-lg font-bold font-mono">
+                    ${(result.grossRevenue * gpuCount).toFixed(4)}
+                  </div>
+                  <div className="text-xs text-[--text-muted]">per day</div>
+                </div>
+                <div className="bg-[--bg-secondary] rounded-lg p-4">
+                  <div className="text-xs text-[--text-muted] mb-1">Power Cost</div>
+                  <div className="text-lg font-bold font-mono text-[--accent-red]">
+                    -${(result.powerCost * gpuCount).toFixed(4)}
+                  </div>
+                  <div className="text-xs text-[--text-muted]">per day</div>
+                </div>
+                <div className="bg-[--bg-secondary] rounded-lg p-4">
+                  <div className="text-xs text-[--text-muted] mb-1">Net Profit</div>
+                  <div className={`text-lg font-bold font-mono ${
+                    result.netProfit > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                  }`}>
+                    ${(result.netProfit * gpuCount).toFixed(4)}
+                  </div>
+                  <div className="text-xs text-[--text-muted]">per day</div>
+                </div>
+                <div className="bg-[--bg-secondary] rounded-lg p-4">
+                  <div className="text-xs text-[--text-muted] mb-1">Efficiency</div>
+                  <div className="text-lg font-bold font-mono text-[--accent-blue]">
+                    {result.efficiency.toFixed(0)}
+                  </div>
+                  <div className="text-xs text-[--text-muted]">H/W</div>
+                </div>
+              </div>
+
+              {/* Extended stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-[--text-muted]">Monthly Net</span>
+                  <div className={`font-mono font-semibold ${
+                    monthlyNet > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                  }`}>
+                    ${monthlyNet.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[--text-muted]">Yearly Net</span>
+                  <div className={`font-mono font-semibold ${
+                    yearlyNet > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                  }`}>
+                    ${yearlyNet.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[--text-muted]">Daily kWh</span>
+                  <div className="font-mono font-semibold">
+                    {((powerLimit / 1000) * 24 * gpuCount).toFixed(1)}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[--text-muted]">Break-even Price</span>
+                  <div className="font-mono font-semibold">
+                    ${(result.powerCost / result.grossRevenue * (selectedGpu.hashrates[selectedAlgoId] ?? 1)).toFixed(4)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Top GPUs for this algorithm */}
+          <div className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5">
+            <h3 className="font-semibold mb-3">Top GPUs for {algo?.name ?? ""}</h3>
+            <div className="space-y-2">
+              {topForAlgo.map((g, i) => (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    setSelectedGpuId(g.id);
+                    setPowerLimit(g.tdp);
+                  }}
+                  className={`w-full flex items-center justify-between p-3 rounded-lg text-sm transition-all ${
+                    g.id === selectedGpuId
+                      ? "bg-[--accent-green]/10 border border-[--accent-green]/30"
+                      : "bg-[--bg-secondary] border border-transparent hover:bg-[--bg-card-hover]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[--text-muted] w-4">#{i + 1}</span>
+                    <span className="font-medium">{g.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono text-[--accent-green]">
+                      {formatHashrate(g.hash, algo?.unit ?? "")}
+                    </span>
+                    <span className="text-[--text-muted] w-16 text-right">{g.tdp}W</span>
+                    <span className="text-[--accent-blue] w-12 text-right">{g.eff.toFixed(0)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ROI estimate */}
+          {selectedGpu && (
+            <div className="bg-[--bg-card] border border-[--border-color] rounded-xl p-5">
+              <h3 className="font-semibold mb-3">ROI Estimate</h3>
+              {result && result.netProfit > 0 ? (
+                <div className="text-sm text-[--text-secondary] space-y-2">
+                  <p>
+                    Based on <strong className="text-[--text-primary]">${selectedGpu.price.toLocaleString()}</strong> GPU price,
+                    <strong className="text-[--text-primary]"> ${(result.netProfit * gpuCount).toFixed(4)}/day</strong> net profit:
+                  </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="flex-1 bg-[--bg-secondary] rounded-full h-3 overflow-hidden">
+                      <div
+                        className="h-full bg-[--accent-green] rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(100, (selectedGpu.price / (result.netProfit * gpuCount * 365 * 3)) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="font-mono font-bold whitespace-nowrap">
+                      {result.netProfit * gpuCount > 0
+                        ? `${(selectedGpu.price / (result.netProfit * gpuCount * 365)).toFixed(1)} years`
+                        : "∞"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[--text-muted]">
+                    * ROI is a rough estimate. Does not account for difficulty changes, price volatility, or pool luck.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-[--accent-red]">
+                  This setup is not profitable at the current electricity cost.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
