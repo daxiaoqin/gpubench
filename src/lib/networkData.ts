@@ -14,31 +14,18 @@ export interface NetworkInfo {
 // For each coin, define how to fetch live data
 // Each fetcher returns { networkHashrate, dailyReward } or null
 const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyReward: number } | null>> = {
-  // Alephium — has a public API
-  blake3: async () => {
-    try {
-      const res = await fetch("https://backend-v2.mainnet.alephium.org/infos/network", { signal: AbortSignal.timeout(3000) });
-      if (!res.ok) return null;
-      const data = await res.json();
-      // Currently Alephium doesn't expose network hashrate directly in this endpoint
-      // Fall back to estimated value
-      return null;
-    } catch {
-      return null;
-    }
-  },
-
-  // Kaspa — has a simple public API
+  // Kaspa — has a public API
   kheavyhash: async () => {
     try {
-      const res = await fetch("https://api.kaspa.org/info/network", { signal: AbortSignal.timeout(3000) });
+      const res = await fetch("https://api.kaspa.org/info/network", { signal: AbortSignal.timeout(5000) });
       if (!res.ok) return null;
       const data = await res.json();
-      const networkThs = data?.hashRate ?? 0;
+      // Kaspa network hashrate is in TH/s, we need GH/s for our GPU data
+      const networkThs = data.hashRate ?? 0;
       if (networkThs <= 0) return null;
       return {
-        networkHashrate: networkThs * 1000, // TH/s → GH/s
-        dailyReward: 8640000,
+        networkHashrate: networkThs * 1000, // TH/s → GH/s (matching GPU unit)
+        dailyReward: 8640000, // ~8.64M KAS/day (100 KAS/block × ~86400 blocks/day)
       };
     } catch {
       return null;
@@ -89,7 +76,7 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
 // Default fallback values (used when live fetch fails)
 export const defaultNetworkData: Record<string, NetworkInfo> = {
   pearlhash: {
-    networkHashrate: 3700000, // TH/s — small coin, ~3.7M TH/s network
+    networkHashrate: 91800000, // TH/s (LuckyPool shows ~382 TH/s from user's 3 cards, network is much larger)
     dailyReward: 72000,
     unit: "TH/s",
     lastUpdated: null,
