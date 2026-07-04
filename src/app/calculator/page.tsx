@@ -292,9 +292,9 @@ export default function CalculatorPage() {
                 <div className="bg-[--bg-secondary] rounded-lg p-4">
                   <div className="text-xs text-[--text-muted] mb-1">Net Profit</div>
                   <div className={`text-lg font-bold font-mono ${
-                    result.netProfit > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                    result.netProfit * gpuCount > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
                   }`}>
-                    ${(result.netProfit * gpuCount).toFixed(4)}
+                    {result.netProfit * gpuCount >= 0 ? "$" : "-$"}{Math.abs(result.netProfit * gpuCount).toFixed(4)}
                   </div>
                   <div className="text-xs text-[--text-muted]">per day</div>
                 </div>
@@ -314,7 +314,7 @@ export default function CalculatorPage() {
                   <div className={`font-mono font-semibold ${
                     monthlyNet > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
                   }`}>
-                    ${monthlyNet.toFixed(2)}
+                    {monthlyNet >= 0 ? "$" : "-$"}{Math.abs(monthlyNet).toFixed(2)}
                   </div>
                 </div>
                 <div>
@@ -322,7 +322,7 @@ export default function CalculatorPage() {
                   <div className={`font-mono font-semibold ${
                     yearlyNet > 0 ? "text-[--accent-green]" : "text-[--accent-red]"
                   }`}>
-                    ${yearlyNet.toFixed(2)}
+                    {yearlyNet >= 0 ? "$" : "-$"}{Math.abs(yearlyNet).toFixed(2)}
                   </div>
                 </div>
                 <div>

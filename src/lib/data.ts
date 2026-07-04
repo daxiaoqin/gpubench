@@ -448,7 +448,7 @@ export function calcDailyRevenueWithLiveNetwork(
   const dailyKwh = (powerLimit / 1000) * 24;
   const powerCost = dailyKwh * electricityCost;
 
-  const netProfit = Math.max(0, grossRevenue - powerCost);
+  const netProfit = grossRevenue - powerCost;
   const efficiency = powerLimit > 0 ? (hashrate / powerLimit) * 1000 : 0;
 
   return { grossRevenue, powerCost, netProfit, efficiency };
@@ -519,7 +519,7 @@ export function calcDailyRevenueWithLivePrice(
   const dailyKwh = (powerLimit / 1000) * 24;
   const powerCost = dailyKwh * electricityCost;
 
-  const netProfit = Math.max(0, grossRevenue - powerCost);
+  const netProfit = grossRevenue - powerCost;
   const efficiency = powerLimit > 0 ? (hashrate / powerLimit) * 1000 : 0;
 
   return {
