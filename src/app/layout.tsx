@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     "GPU benchmark",
     "cryptocurrency mining",
     "GPU profitability",
+    "PeakMiner",
+    "mining pool",
+    "GPU mining tutorial",
   ],
   openGraph: {
     title: "GPUBench — GPU Hashrate Database & Mining Calculator",
@@ -38,40 +41,66 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               {/* Logo */}
-              <a href="/" className="flex items-center gap-2 group">
+              <a href="/" className="flex items-center gap-2 group shrink-0">
                 <div className="w-8 h-8 rounded-lg bg-[--accent-green] flex items-center justify-center font-bold text-sm group-hover:scale-105 transition-transform">
                   G
                 </div>
-                <span className="font-bold text-lg text-[--text-primary]">
+                <span className="font-bold text-lg text-[--text-primary] hidden sm:inline">
                   GPUBench<span className="text-[--accent-green]">.online</span>
                 </span>
               </a>
 
               {/* Nav Links */}
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto">
                 <a
                   href="/"
-                  className="px-3 py-2 rounded-lg text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
                 >
                   Home
                 </a>
                 <a
                   href="/gpus"
-                  className="px-3 py-2 rounded-lg text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
                 >
                   GPUs
                 </a>
                 <a
                   href="/coins"
-                  className="px-3 py-2 rounded-lg text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
                 >
                   Coins
                 </a>
                 <a
+                  href="/miners"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
+                >
+                  Miners
+                </a>
+                <a
+                  href="/pools"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
+                >
+                  Pools
+                </a>
+                <a
+                  href="/tutorials"
+                  className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--bg-card] transition-all whitespace-nowrap"
+                >
+                  Tutorials
+                </a>
+                <a
                   href="/calculator"
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[--accent-green] text-black hover:bg-green-400 transition-all"
+                  className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-[--accent-green] text-black hover:bg-green-400 transition-all whitespace-nowrap"
                 >
                   Calculator
+                </a>
+                {/* Language Switcher */}
+                <a
+                  href="/zh"
+                  className="ml-1 sm:ml-2 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-[--text-muted] border border-[--border-color] hover:text-[--text-primary] hover:border-[--accent-green]/30 transition-all whitespace-nowrap"
+                  title="中文版"
+                >
+                  中文
                 </a>
               </div>
             </div>
@@ -91,10 +120,18 @@ export default function RootLayout({
                 </div>
                 <span>GPUBench.online — GPU Hashrate Database</span>
               </div>
-              <div className="flex items-center gap-4 text-[--text-muted] text-xs">
-                <span>Data sourced from real-world testing</span>
+              <div className="flex items-center gap-3 text-[--text-muted] text-xs flex-wrap justify-center">
+                <a href="/tutorials" className="hover:text-[--text-primary]">Tutorials</a>
                 <span>•</span>
-                <span>Prices update every 5 min via CoinGecko</span>
+                <a href="/miners" className="hover:text-[--text-primary]">Miners</a>
+                <span>•</span>
+                <a href="/pools" className="hover:text-[--text-primary]">Pools</a>
+                <span>•</span>
+                <a href="/zh" className="hover:text-[--text-primary]">中文版</a>
+                <span>•</span>
+                <span>Data from real-world testing</span>
+                <span>•</span>
+                <span>Prices via CoinGecko</span>
               </div>
             </div>
           </div>
