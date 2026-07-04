@@ -164,18 +164,30 @@ export default function CalculatorPage() {
               </select>
             </div>
 
-            {/* Live Price Display */}
+            {/* Live Price Display + Data Source */}
             {liveCoin && (
-              <div className="bg-[--bg-secondary] rounded-lg p-3 flex items-center justify-between">
-                <span className="text-sm text-[--text-muted]">{algo?.symbol} Price</span>
-                <span className="font-mono font-semibold text-[--accent-green]">
-                  ${liveCoin.price < 0.01 ? liveCoin.price.toFixed(6) : liveCoin.price.toFixed(4)}
-                  <span className={`ml-1 text-xs ${
-                    (liveCoin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
-                  }`}>
-                    {(liveCoin.priceChange24h ?? 0) >= 0 ? "+" : ""}{liveCoin.priceChange24h?.toFixed(1)}%
+              <div className="bg-[--bg-secondary] rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[--text-muted]">{algo?.symbol} Price</span>
+                  <span className="font-mono font-semibold text-[--accent-green]">
+                    ${liveCoin.price < 0.01 ? liveCoin.price.toFixed(6) : liveCoin.price.toFixed(4)}
+                    <span className={`ml-1 text-xs ${
+                      (liveCoin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
+                    }`}>
+                      {(liveCoin.priceChange24h ?? 0) >= 0 ? "+" : ""}{liveCoin.priceChange24h?.toFixed(1)}%
+                    </span>
                   </span>
-                </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[--text-muted]">Network Data</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    networkData?.[selectedAlgoId]?.source === "Live API"
+                      ? "bg-[--accent-green]/10 text-[--accent-green]"
+                      : "bg-yellow-500/10 text-yellow-500"
+                  }`}>
+                    {networkData?.[selectedAlgoId]?.source === "Live API" ? "● Live" : "○ Estimated"}
+                  </span>
+                </div>
               </div>
             )}
 
