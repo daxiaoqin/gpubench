@@ -17,17 +17,27 @@ export default function HomePage() {
     .slice(0, 8);
 
   // Use live data if available, fallback to static
-  const displayCoins = liveCoins || staticCoins.map((c) => ({
-    id: c.id,
-    name: c.name,
-    symbol: c.symbol,
-    price: c.price,
-    priceChange24h: c.priceChange24h,
-    marketCap: c.marketCap,
-    volume24h: c.volume24h,
-    lastUpdated: new Date().toISOString(),
-  }));
-  const featuredCoins = displayCoins.slice(0, 4);
+  const featuredCoins = liveCoins
+    ? staticCoins.map((c) => ({
+        id: c.id,
+        name: c.name,
+        symbol: c.symbol,
+        price: liveCoins[c.id]?.usd ?? c.price,
+        priceChange24h: liveCoins[c.id]?.usd_24h_change ?? c.priceChange24h,
+        marketCap: c.marketCap,
+        volume24h: c.volume24h,
+        lastUpdated: new Date().toISOString(),
+      })).slice(0, 4)
+    : staticCoins.map((c) => ({
+        id: c.id,
+        name: c.name,
+        symbol: c.symbol,
+        price: c.price,
+        priceChange24h: c.priceChange24h,
+        marketCap: c.marketCap,
+        volume24h: c.volume24h,
+        lastUpdated: new Date().toISOString(),
+      }));
 
   return (
     <div>

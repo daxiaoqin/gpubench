@@ -4,20 +4,45 @@ import { coins as staticCoins, algorithms, formatNumber } from "@/lib/data";
 import { useLiveCoinData } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
+interface DisplayCoin {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange24h: number;
+  marketCap: number;
+  volume24h: number;
+  lastUpdated: string;
+}
+
 export default function CoinsPage() {
   const { data: liveCoins, loading, refetch } = useLiveCoinData(5 * 60 * 1000);
 
-  // Use live data if available, fallback to static
-  const displayCoins = liveCoins || staticCoins.map((c) => ({
-    id: c.id,
-    name: c.name,
-    symbol: c.symbol,
-    price: c.price,
-    priceChange24h: c.priceChange24h,
-    marketCap: c.marketCap,
-    volume24h: c.volume24h,
-    lastUpdated: new Date().toISOString(),
-  }));
+  // Build display coins from live data OR static fallback
+  const displayCoins: DisplayCoin[] = liveCoins
+    ? staticCoins.map((c) => {
+        const live = liveCoins[c.id];
+        return {
+          id: c.id,
+          name: c.name,
+          symbol: c.symbol,
+          price: live?.usd ?? c.price,
+          priceChange24h: live?.usd_24h_change ?? c.priceChange24h,
+          marketCap: c.marketCap,
+          volume24h: c.volume24h,
+          lastUpdated: new Date().toISOString(),
+        };
+      })
+    : staticCoins.map((c) => ({
+        id: c.id,
+        name: c.name,
+        symbol: c.symbol,
+        price: c.price,
+        priceChange24h: c.priceChange24h,
+        marketCap: c.marketCap,
+        volume24h: c.volume24h,
+        lastUpdated: new Date().toISOString(),
+      }));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -53,63 +78,41 @@ export default function CoinsPage() {
               key={coin.id}
               className="bg-[--bg-card] border border-[--border-color] rounded-xl p-6 hover:border-[--accent-green]/20 transition-all"
             >
-              {/* Header */}
-              <div className="flex items-center gap-4 mb-5">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
-                  style={{ backgroundColor: (staticCoin?.color ?? "#22c55e") + "20", color: staticCoin?.color ?? "#22c55e" }}
-                >
-                  {coin.symbol.charAt(0)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-semibold text-lg">{coin.name}</h2>
-                    <span className="text-xs text-[--text-muted] bg-[--bg-secondary] px-2 py-0.5 rounded">
-                      {coin.symbol}
-                    </span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl" style={{ filter: "grayscale(0.2)" }}>
+                    {staticCoin?.color ?? "🪙"}
+                  </span>
+                  <div>
+                    <div className="font-semibold">{coin.name}</div>
+                    <div className="text-xs text-[--text-muted]">{coin.symbol}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[--text-muted]">
-                    <span className="font-medium text-[--accent-green]">{staticCoin?.algorithm ?? algo?.name ?? "PoW"}</span>
-                    <span>·</span>
-                    <span>GPU Mineable</span>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono font-semibold">
+                    ${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}
+                  </div>
+                  <div
+                    className={`text-xs font-mono ${
+                      coin.priceChange24h >= 0
+                        ? "text-[--accent-green]"
+                        : "text-[--accent-red]"
+                    }`}
+                  >
+                    {coin.priceChange24h >= 0 ? "+" : ""}
+                    {coin.priceChange24h.toFixed(2)}%
                   </div>
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="flex items-baseline gap-3 mb-5">
-                <span className="text-3xl font-bold">
-                  ${coin.price < 0.01 ? coin.price.toFixed(6) : coin.price.toFixed(4)}
-                </span>
-                <span className={`text-sm font-medium ${
-                  (coin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"
-                }`}>
-                  {(coin.priceChange24h ?? 0) >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1) ?? "0.0"}%
-                </span>
+              <div className="flex justify-between text-xs text-[--text-secondary] mb-3">
+                <span>Algorithm: <span className="font-medium text-[--text-primary]">{algo?.name ?? coin.symbol}</span></span>
+                <span>Market Cap: <span className="font-medium text-[--text-primary]">{formatNumber(coin.marketCap)}</span></span>
               </div>
 
-              {/* Details */}
-              <div className="space-y-2 text-sm border-t border-[--border-color] pt-4">
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">Market Cap</span>
-                  <span className="font-mono">${formatNumber(coin.marketCap)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[--text-muted]">24h Volume</span>
-                  <span className="font-mono">${formatNumber(coin.volume24h)}</span>
-                </div>
-                {algo && (
-                  <div className="flex justify-between">
-                    <span className="text-[--text-muted]">Algorithm</span>
-                    <span className="font-mono">{algo.name}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Action */}
               <Link
                 href={`/calculator?coin=${coin.symbol.toLowerCase()}`}
-                className="mt-4 block w-full text-center py-2 rounded-lg bg-[--bg-secondary] border border-[--border-color] text-sm hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all"
+                className="block w-full text-center py-2 rounded-lg bg-[--accent-green]/10 text-[--accent-green] text-sm font-medium hover:bg-[--accent-green]/20 transition-colors"
               >
                 Calculate Profitability →
               </Link>
