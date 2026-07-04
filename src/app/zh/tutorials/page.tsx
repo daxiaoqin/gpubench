@@ -91,7 +91,7 @@ export default function ZhTutorialsPage() {
       <div className="mb-10">
         <h1 className="text-3xl font-bold">挖矿教程</h1>
         <p className="text-[--text-secondary] mt-1">
-          从零开始的挖矿指南，适合小白和进阶玩家。
+          从零开始的挖矿指南，适合小白和进阶玩家。点击教程查看详情。
         </p>
       </div>
 
@@ -108,8 +108,10 @@ export default function ZhTutorialsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {tutorials.map((t) => (
-          <div
-            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all cursor-default"
+          <a
+            key={t.slug}
+            href="/zh/tutorials"
+            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all block"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs px-2 py-0.5 rounded-full bg-[--accent-green]/10 text-[--accent-green]">{t.category}</span>
@@ -118,7 +120,7 @@ export default function ZhTutorialsPage() {
             </div>
             <h3 className="font-semibold group-hover:text-[--accent-green] transition-colors mb-2">{t.title}</h3>
             <p className="text-sm text-[--text-secondary]">{t.description}</p>
-          </div>
+          </a>
         ))}
       </div>
 

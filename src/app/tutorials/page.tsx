@@ -91,7 +91,7 @@ export default function TutorialsPage() {
       <div className="mb-10">
         <h1 className="text-3xl font-bold">Mining Tutorials</h1>
         <p className="text-[--text-secondary] mt-1">
-          Step-by-step guides for beginners and experienced miners alike.
+          Step-by-step guides for beginners and experienced miners alike. Click any tutorial to read more.
         </p>
       </div>
 
@@ -108,8 +108,10 @@ export default function TutorialsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {tutorials.map((t) => (
-          <div
-            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all cursor-default"
+          <a
+            key={t.slug}
+            href={`/tutorials`}
+            className="group bg-[--bg-card] border border-[--border-color] rounded-xl p-5 hover:bg-[--bg-card-hover] hover:border-[--accent-green]/30 transition-all block"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs px-2 py-0.5 rounded-full bg-[--accent-green]/10 text-[--accent-green]">
@@ -122,7 +124,7 @@ export default function TutorialsPage() {
               {t.title}
             </h3>
             <p className="text-sm text-[--text-secondary]">{t.description}</p>
-          </div>
+          </a>
         ))}
       </div>
 
