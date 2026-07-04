@@ -7,9 +7,9 @@ import {
   coins as staticCoins,
   formatHashrate,
   formatNumber,
-  calcDailyRevenueWithLivePrice,
+  calcDailyRevenueWithLiveNetwork,
 } from "@/lib/data";
-import { useLiveCoinData, getCoinPrice } from "@/lib/hooks/useLiveData";
+import { useLiveCoinData, getCoinPrice, useNetworkData } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
 // Map algorithm ID to coin ID for price lookup
@@ -25,6 +25,7 @@ const algoToCoinId: Record<string, string> = {
 
 export default function CalculatorPage() {
   const { data: liveCoins } = useLiveCoinData();
+  const { data: networkData } = useNetworkData();
   const [selectedGpuId, setSelectedGpuId] = useState("rtx-5080");
   const [selectedAlgoId, setSelectedAlgoId] = useState("pearlhash");
   const [powerLimit, setPowerLimit] = useState(260);
@@ -60,22 +61,42 @@ export default function CalculatorPage() {
 
   const result = useMemo(() => {
     if (!selectedGpu || !algo) return null;
-    return calcDailyRevenueWithLivePrice(selectedGpu, selectedAlgoId, powerLimit, electricityCost, coinPrice);
-  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost, coinPrice]);
+    // Get live price
+    const coinId = algoToCoinId[selectedAlgoId];
+    const liveCoin = getCoinPrice(liveCoins, coinId);
+    const coinPrice = liveCoin?.price ?? staticCoins.find((c) => c.id === coinId)?.price ?? 0;
+
+    // Get live network data
+    const networkInfo = networkData?.[selectedAlgoId];
+    const networkHashrate = networkInfo?.networkHashrate ?? 0;
+    const dailyReward = networkInfo?.dailyReward ?? 0;
+
+    return calcDailyRevenueWithLiveNetwork(
+      selectedGpu, selectedAlgoId, powerLimit, electricityCost,
+      coinPrice, networkHashrate, dailyReward
+    );
+  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost, liveCoins, networkData]);
 
   // Top 5 GPUs for this algorithm
   const topForAlgo = useMemo(() => {
+    const networkInfo = networkData?.[selectedAlgoId];
+    const networkHashrate = networkInfo?.networkHashrate ?? 0;
+    const dailyReward = networkInfo?.dailyReward ?? 0;
+    const coinId = algoToCoinId[selectedAlgoId];
+    const liveCoin = getCoinPrice(liveCoins, coinId);
+    const cp = liveCoin?.price ?? staticCoins.find((c) => c.id === coinId)?.price ?? 0;
+
     return [...gpus]
       .map((g) => ({
         ...g,
         hash: g.hashrates[selectedAlgoId] ?? 0,
         eff: g.tdp > 0 ? ((g.hashrates[selectedAlgoId] ?? 0) / g.tdp) * 1000 : 0,
-        daily: calcDailyRevenueWithLivePrice(g, selectedAlgoId, g.tdp, electricityCost, coinPrice),
+        daily: calcDailyRevenueWithLiveNetwork(g, selectedAlgoId, g.tdp, electricityCost, cp, networkHashrate, dailyReward),
       }))
       .filter((g) => g.hash > 0)
       .sort((a, b) => b.daily.netProfit - a.daily.netProfit)
       .slice(0, 5);
-  }, [selectedAlgoId, electricityCost, coinPrice]);
+  }, [selectedAlgoId, electricityCost, liveCoins, networkData]);
 
   const monthlyNet = result ? result.netProfit * 30 * gpuCount : 0;
   const yearlyNet = result ? result.netProfit * 365 * gpuCount : 0;

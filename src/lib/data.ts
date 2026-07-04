@@ -417,6 +417,37 @@ export function formatHashrate(value: number, unit: string): string {
   return (value * 1000).toFixed(0) + " " + unit;
 }
 
+export function calcDailyRevenueWithLiveNetwork(
+  gpu: GpuData,
+  algoId: string,
+  powerLimit: number,
+  electricityCost: number,
+  coinPrice: number,
+  networkHashrate: number,
+  dailyReward: number
+): { grossRevenue: number; powerCost: number; netProfit: number; efficiency: number } {
+  const hashrate = gpu.hashrates[algoId] ?? 0;
+  if (hashrate === 0 || networkHashrate <= 0) {
+    return { grossRevenue: 0, powerCost: 0, netProfit: 0, efficiency: 0 };
+  }
+
+  // GPU's share of the network
+  const share = hashrate / networkHashrate;
+
+  // Daily coin earnings → USD
+  const dailyCoin = share * dailyReward;
+  const grossRevenue = dailyCoin * coinPrice;
+
+  // Power cost
+  const dailyKwh = (powerLimit / 1000) * 24;
+  const powerCost = dailyKwh * electricityCost;
+
+  const netProfit = Math.max(0, grossRevenue - powerCost);
+  const efficiency = powerLimit > 0 ? (hashrate / powerLimit) * 1000 : 0;
+
+  return { grossRevenue, powerCost, netProfit, efficiency };
+}
+
 // Helper: calculate daily mining revenue for a GPU on a given algo
 // Uses the static coin price from data.ts (fallback)
 export function calcDailyRevenue(

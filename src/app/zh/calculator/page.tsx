@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { gpus, algorithms, coins as staticCoins, formatHashrate, calcDailyRevenue } from "@/lib/data";
+import { gpus, algorithms, coins as staticCoins, formatHashrate, calcDailyRevenueWithLiveNetwork } from "@/lib/data";
+import { useLiveCoinData, getCoinPrice, useNetworkData } from "@/lib/hooks/useLiveData";
 
 const algoToCoinId: Record<string, string> = {
   pearlhash: "pearl",
@@ -14,6 +15,8 @@ const algoToCoinId: Record<string, string> = {
 };
 
 export default function ZhCalculatorPage() {
+  const { data: liveCoins } = useLiveCoinData();
+  const { data: networkData } = useNetworkData();
   const [selectedGpuId, setSelectedGpuId] = useState("rtx-5080");
   const [selectedAlgoId, setSelectedAlgoId] = useState("pearlhash");
   const [powerLimit, setPowerLimit] = useState(260);
@@ -32,16 +35,26 @@ export default function ZhCalculatorPage() {
   const selectedGpu = gpus.find((g) => g.id === selectedGpuId);
   const algo = algorithms.find((a) => a.id === selectedAlgoId);
   const coinId = algoToCoinId[selectedAlgoId];
-  const coin = staticCoins.find((c) => c.id === coinId);
+
+  // Live price
+  const liveCoin = getCoinPrice(liveCoins, coinId);
+  const coinPrice = liveCoin?.price ?? staticCoins.find((c) => c.id === coinId)?.price ?? 0;
 
   useEffect(() => {
     if (selectedGpu) setPowerLimit(selectedGpu.tdp);
   }, [selectedGpuId]);
 
   const result = useMemo(() => {
-    if (!selectedGpu || !algo || !coin) return null;
-    return calcDailyRevenue(selectedGpu, selectedAlgoId, powerLimit, electricityCost);
-  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost, coin]);
+    if (!selectedGpu || !algo) return null;
+    const networkInfo = networkData?.[selectedAlgoId];
+    const networkHashrate = networkInfo?.networkHashrate ?? 0;
+    const dailyReward = networkInfo?.dailyReward ?? 0;
+
+    return calcDailyRevenueWithLiveNetwork(
+      selectedGpu, selectedAlgoId, powerLimit, electricityCost,
+      coinPrice, networkHashrate, dailyReward
+    );
+  }, [selectedGpu, selectedAlgoId, powerLimit, electricityCost, coinPrice, networkData]);
 
   const monthlyNet = result ? result.netProfit * 30 * gpuCount : 0;
   const yearlyNet = result ? result.netProfit * 365 * gpuCount : 0;
@@ -51,7 +64,8 @@ export default function ZhCalculatorPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">挖矿收益计算器</h1>
         <p className="text-[--text-secondary] mt-1">
-          估算任意显卡和算法组合的每日挖矿收益。
+          {networkData ? "实时网络算力和币价" : "估算"}任意显卡和算法组合的每日挖矿收益。
+          {liveCoin && networkData && <span className="text-[--accent-green]"> ● 实时</span>}
         </p>
       </div>
 
@@ -96,13 +110,13 @@ export default function ZhCalculatorPage() {
               </select>
             </div>
 
-            {coin && (
+            {liveCoin && (
               <div className="bg-[--bg-secondary] rounded-lg p-3 flex items-center justify-between">
-                <span className="text-sm text-[--text-muted]">{coin.symbol} 当前价格</span>
+                <span className="text-sm text-[--text-muted]">{algo?.symbol} 实时价格</span>
                 <span className="font-mono font-semibold text-[--accent-green]">
-                  ${coin.price.toFixed(4)}
-                  <span className={`ml-1 text-xs ${(coin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
-                    {(coin.priceChange24h ?? 0) >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1)}%
+                  ${liveCoin.price < 0.01 ? liveCoin.price.toFixed(6) : liveCoin.price.toFixed(4)}
+                  <span className={`ml-1 text-xs ${(liveCoin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
+                    {(liveCoin.priceChange24h ?? 0) >= 0 ? "+" : ""}{liveCoin.priceChange24h?.toFixed(1)}%
                   </span>
                 </span>
               </div>
@@ -156,6 +170,7 @@ export default function ZhCalculatorPage() {
                     <h2 className="text-xl font-bold">{selectedGpu.name}</h2>
                     <p className="text-[--text-secondary] text-sm">
                       {algo.name} · {gpuCount} 张卡 · 功耗 {powerLimit}W
+                      {liveCoin && networkData && <span className="text-[--accent-green] ml-2">● 实时</span>}
                     </p>
                   </div>
                   <div className="text-right">
@@ -209,7 +224,7 @@ export default function ZhCalculatorPage() {
                   <div>
                     <span className="text-[--text-muted]">保本价格</span>
                     <div className="font-mono font-semibold">
-                      ${coin && result.grossRevenue > 0 ? (result.powerCost / result.grossRevenue * coin.price).toFixed(4) : "N/A"}
+                      ${coinPrice > 0 && result.grossRevenue > 0 ? (result.powerCost / result.grossRevenue * coinPrice).toFixed(4) : "N/A"}
                     </div>
                   </div>
                 </div>
