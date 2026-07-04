@@ -14,6 +14,19 @@ export interface NetworkInfo {
 // For each coin, define how to fetch live data
 // Each fetcher returns { networkHashrate, dailyReward } or null
 const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyReward: number } | null>> = {
+  // Alephium — has a public API (falls back to estimate)
+  blake3: async () => {
+    try {
+      const res = await fetch("https://backend-v2.mainnet.alephium.org/infos/network", { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) return null;
+      const data = await res.json();
+      // Alephium API doesn't directly expose network hashrate yet, fall back to estimate
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
   // Kaspa — has a public API
   kheavyhash: async () => {
     try {
@@ -76,7 +89,7 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
 // Default fallback values (used when live fetch fails)
 export const defaultNetworkData: Record<string, NetworkInfo> = {
   pearlhash: {
-    networkHashrate: 91800000, // TH/s (LuckyPool shows ~382 TH/s from user's 3 cards, network is much larger)
+    networkHashrate: 3700000, // TH/s — small coin, ~3.7M TH/s estimated network
     dailyReward: 72000,
     unit: "TH/s",
     lastUpdated: null,
