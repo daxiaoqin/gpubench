@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Standard build — all pages are static, no server-side API calls
+  output: "export",
   trailingSlash: true,
   images: { unoptimized: true },
 };
