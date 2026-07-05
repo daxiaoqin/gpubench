@@ -1,4 +1,5 @@
 // Minimal static file server for Next.js static export (out/)
+// v2 - handle missing JS chunks gracefully
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
