@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GPUBench.online — GPU Hashrate Database &amp; Mining Calculator
+
+[![Website](https://img.shields.io/badge/Website-gpubench.online-00c853?style=flat-square)](https://gpubench.online)
+[![GitHub last commit](https://img.shields.io/github/last-commit/daxiaoqin/gpubench?style=flat-square)](https://github.com/daxiaoqin/gpubench/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/daxiaoqin/gpubench?style=flat-square)](https://github.com/daxiaoqin/gpubench/stargazers)
+
+**Real-world GPU benchmark data across mining algorithms.** Compare hashrates, power efficiency, and daily profitability for NVIDIA RTX 50/40/30 series and AMD Radeon GPUs.
+
+👉 **Live site: [https://gpubench.online](https://gpubench.online)**
+
+---
+
+## Features
+
+- 🔍 **GPU Database** — Hashrates for all major algorithms (PearlHash, Blake3, KawPow, Etchash, RandomX, etc.)
+- 📊 **Mining Calculator** — Estimate daily revenue based on your GPU, power cost, and real-time network data
+- 📈 **Live Prices** — Real-time coin prices via CoinGecko (PRL, RVN, KAS, ETC, CFX, NEXA, ALPH)
+- ⛏ **Mining Tutorials** — Step-by-step guides for PeakMiner, SRBMiner, lolMiner and more
+- 🏊 **Pool List** — Curated mining pools with stratum details
+- 🌐 **EN / 中文** — Full bilingual support
+
+## Tech Stack
+
+| Layer  | Technology |
+|--------|-----------|
+| Framework | [Next.js 16](https://nextjs.org/) |
+| Language | [TypeScript](https://www.typescriptlang.org/) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com/) |
+| Data Source | CoinGecko API (client-side) |
+| Deployment | Static export on Hostinger |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+git clone https://github.com/daxiaoqin/gpubench.git
+cd gpubench
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+Static output goes to `out/` — deploy anywhere.
 
-To learn more about Next.js, take a look at the following resources:
+## Why This Project?
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Community-driven** — Hashrate data comes from real miners, not synthetic benchmarks
+- **Ad-free & open** — No paywalls, no sign-ups required
+- **Privacy-first** — No tracking, all API calls run in your browser
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributing
 
-## Deploy on Vercel
+Contributions are welcome! Open an issue or PR for:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- New GPU benchmark submissions
+- Additional algorithm support
+- Bug fixes and improvements
+- New mining pool listings
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+[MIT](LICENSE)
+
+---
+
+**Made with ❤️ by GPU miners, for GPU miners.**
