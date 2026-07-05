@@ -28,6 +28,10 @@ export const metadata: Metadata = {
       "Real-world GPU benchmark data across mining algorithms. Find the most profitable GPU for your setup.",
     type: "website",
   },
+  verification: {
+    google: "googlee0da5c4d8d31ab16",
+    yandex: "cdbd4e9f85b3b012",
+  },
 };
 
 export default function RootLayout({
