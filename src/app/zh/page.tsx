@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { gpus, algorithms, coins, calcDailyRevenue, formatHashrate, formatNumber } from "@/lib/data";
+import { useLiveCoinData } from "@/lib/hooks/useLiveData";
 
 export default function ZhHomePage() {
+  const { data: liveCoins } = useLiveCoinData();
+
   // Get top GPUs by overall efficiency
   const topGPUs = [...gpus]
     .map((g) => ({
@@ -137,6 +140,10 @@ export default function ZhHomePage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {coins.slice(0, 8).map((coin) => {
             const algo = algorithms.find((a) => a.symbol === coin.symbol);
+            const livePrice = liveCoins?.[coin.id]?.usd;
+            const liveChange = liveCoins?.[coin.id]?.usd_24h_change;
+            const displayPrice = livePrice ?? coin.price;
+            const displayChange = liveChange ?? coin.priceChange24h ?? 0;
             return (
               <div key={coin.id} className="bg-[--bg-card] border border-[--border-color] rounded-xl p-4">
                 <div className="flex items-center gap-3 mb-2">
@@ -150,9 +157,9 @@ export default function ZhHomePage() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="font-mono font-bold">${coin.price.toFixed(2)}</span>
-                  <span className={`text-xs ${(coin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
-                    {(coin.priceChange24h ?? 0) >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1)}%
+                  <span className="font-mono font-bold">${displayPrice.toFixed( displayPrice < 0.001 ? 6 : displayPrice < 1 ? 4 : 2)}</span>
+                  <span className={`text-xs ${displayChange >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
+                    {displayChange >= 0 ? "+" : ""}{displayChange.toFixed(2)}%
                   </span>
                 </div>
               </div>

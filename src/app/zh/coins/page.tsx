@@ -1,9 +1,11 @@
 "use client";
 
 import { coins, algorithms, formatNumber } from "@/lib/data";
+import { useLiveCoinData } from "@/lib/hooks/useLiveData";
 import Link from "next/link";
 
 export default function ZhCoinsPage() {
+  const { data: liveCoins } = useLiveCoinData(5 * 60 * 1000);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -16,6 +18,10 @@ export default function ZhCoinsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {coins.map((coin) => {
           const algo = algorithms.find((a) => a.symbol === coin.symbol);
+          const livePrice = liveCoins?.[coin.id]?.usd;
+          const liveChange = liveCoins?.[coin.id]?.usd_24h_change;
+          const displayPrice = livePrice ?? coin.price;
+          const displayChange = liveChange ?? coin.priceChange24h ?? 0;
           return (
             <div key={coin.id} className="bg-[--bg-card] border border-[--border-color] rounded-xl p-6">
               <div className="flex items-center gap-4 mb-5">
@@ -37,9 +43,9 @@ export default function ZhCoinsPage() {
               </div>
 
               <div className="flex items-baseline gap-3 mb-5">
-                <span className="text-3xl font-bold">${coin.price.toFixed(2)}</span>
-                <span className={`text-sm font-medium ${(coin.priceChange24h ?? 0) >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
-                  {(coin.priceChange24h ?? 0) >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1)}%
+                <span className="text-3xl font-bold">${displayPrice.toFixed(displayPrice < 0.001 ? 6 : displayPrice < 1 ? 4 : 2)}</span>
+                <span className={`text-sm font-medium ${displayChange >= 0 ? "text-[--accent-green]" : "text-[--accent-red]"}`}>
+                  {displayChange >= 0 ? "+" : ""}{displayChange.toFixed(2)}%
                 </span>
               </div>
 
