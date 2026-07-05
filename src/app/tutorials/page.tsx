@@ -61,7 +61,6 @@ const tutorials = [
           <li><strong>Extract</strong> to a folder (add Windows Defender exclusion)</li>
           <li><strong>Create a .bat file</strong> with your pool and wallet:<br/>
             <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo pearlhash --pool stratum+tcp://pearl-eu2.luckypool.io:3360 --user YOUR_WALLET_ADDRESS --power-limit 260</code>
-            <span className="block text-xs text-[--text-muted] mt-1">Note: If you&apos;re in mainland China or on a restrictive ISP, use <code className="text-[--accent-green]">pearl-eu2.lproute.com:3360</code> instead.</span>
           </li>
           <li><strong>Run</strong> as administrator</li>
         </ol>
