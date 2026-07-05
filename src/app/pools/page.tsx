@@ -6,7 +6,7 @@ const pools = [
   {
     id: "luckypool",
     name: "LuckyPool",
-    url: "https://www.lproute.com",
+    url: "https://luckypool.io",
     logo: "L",
     color: "#22c55e",
     type: "Multi-coin",

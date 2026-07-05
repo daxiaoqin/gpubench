@@ -60,7 +60,8 @@ const tutorials = [
           <li><strong>下载</strong> PeakMiner 官方网站获取最新版</li>
           <li><strong>解压</strong>到文件夹（添加 Windows Defender 排除项）</li>
           <li><strong>创建 .bat 文件</strong>写入矿池和钱包地址：<br/>
-            <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo pearlhash --pool stratum+tcp://pearl-eu2.lproute.com:3360 --user 你的钱包地址 --power-limit 260</code>
+            <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo pearlhash --pool stratum+tcp://pearl-eu2.luckypool.io:3360 --user 你的钱包地址 --power-limit 260</code>
+            <span className="block text-xs text-[--text-muted] mt-1">提示：如果你在中国大陆或网络受限，请使用 <code className="text-[--accent-green]">pearl-eu2.lproute.com:3360</code> 代替。</span>
           </li>
           <li><strong>以管理员身份运行</strong></li>
         </ol>

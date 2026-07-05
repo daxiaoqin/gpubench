@@ -24,8 +24,8 @@ const algoToCoinId: Record<string, string> = {
 };
 
 export default function CalculatorPage() {
-  const { data: liveCoins } = useLiveCoinData();
-  const { data: networkData } = useNetworkData();
+  const { data: liveCoins, loading: coinLoading } = useLiveCoinData();
+  const { data: networkData, loading: networkLoading } = useNetworkData();
   const [selectedGpuId, setSelectedGpuId] = useState("rtx-5080");
   const [selectedAlgoId, setSelectedAlgoId] = useState("pearlhash");
   const [powerLimit, setPowerLimit] = useState(260);
@@ -109,6 +109,11 @@ export default function CalculatorPage() {
           Estimate daily profit for any GPU and algorithm combination.
           {liveCoin && <span className="text-[--accent-green]"> Live prices active.</span>}
         </p>
+        {(coinLoading || networkLoading) && (
+          <div className="mt-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-2.5 text-sm text-yellow-600 dark:text-yellow-400">
+            <span className="font-medium">⟳ Fetching live data...</span> Please wait while we load real-time prices and network hashrate. Estimated values shown until data is ready.
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
