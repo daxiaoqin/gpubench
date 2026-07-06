@@ -83,6 +83,10 @@ export default function RootLayout({
                 <span>GPUBench.online — GPU Hashrate Database</span>
               </div>
               <div className="flex items-center gap-3 text-[--text-muted] text-xs flex-wrap justify-center">
+                <a href="/benchmark" className="hover:text-[--text-primary]">Benchmark</a>
+                <span>•</span>
+                <a href="/leaderboard" className="hover:text-[--text-primary]">Leaderboard</a>
+                <span>•</span>
                 <a href="/tutorials" className="hover:text-[--text-primary]">Tutorials</a>
                 <span>•</span>
                 <a href="/miners" className="hover:text-[--text-primary]">Miners</a>

@@ -8,7 +8,7 @@ const enNav = [
   { href: "/coins", label: "Coins" },
   { href: "/miners", label: "Miners" },
   { href: "/pools", label: "Pools" },
-  { href: "/tutorials", label: "Tutorials" },
+  { href: "/benchmark", label: "🏆 Benchmark" },
 ];
 
 const zhNav = [
@@ -17,7 +17,7 @@ const zhNav = [
   { href: "/zh/coins", label: "币种" },
   { href: "/zh/miners", label: "矿工" },
   { href: "/zh/pools", label: "矿池" },
-  { href: "/zh/tutorials", label: "教程" },
+  { href: "/benchmark", label: "🏆 测速" },
 ];
 
 export default function NavBar() {
@@ -55,6 +55,17 @@ export default function NavBar() {
                 {item.label}
               </a>
             ))}
+            {/* Leaderboard button */}
+            <a
+              href="/leaderboard"
+              className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all font-medium ${
+                pathname === "/leaderboard"
+                  ? "text-amber-400 bg-amber-500/10"
+                  : "text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10"
+              }`}
+            >
+              🏅 Leaderboard
+            </a>
             {/* CTA button */}
             <a
               href={isZh ? "/zh/calculator" : "/calculator"}
