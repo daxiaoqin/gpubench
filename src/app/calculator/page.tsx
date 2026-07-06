@@ -110,8 +110,12 @@ export default function CalculatorPage() {
           {liveCoin && <span className="text-[--accent-green]"> Live prices active.</span>}
         </p>
         {(coinLoading || networkLoading) && (
-          <div className="mt-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-2.5 text-sm text-yellow-600 dark:text-yellow-400">
-            <span className="font-medium">⟳ Fetching live data...</span> Please wait while we load real-time prices and network hashrate. Estimated values shown until data is ready.
+          <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-sm text-blue-700 dark:text-blue-400 flex items-center gap-3">
+            <div className="animate-spin text-xl">⏳</div>
+            <div>
+              <span className="font-medium">正在加载实时数据...</span>
+              <p className="text-xs opacity-80 mt-0.5">正在获取币种价格和网络算力数据，预计需要 3-5 秒</p>
+            </div>
           </div>
         )}
       </div>
