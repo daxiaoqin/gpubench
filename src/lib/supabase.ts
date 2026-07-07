@@ -13,7 +13,8 @@ if (missingCredentials) {
 }
 
 // Lazy client — only created when first accessed
-let _supabase: ReturnType<typeof createClient> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _supabase: any = null;
 function getSupabase() {
   if (!_supabase) {
     if (missingCredentials) {
@@ -98,10 +99,10 @@ export async function getStats() {
 
   if (err1 || err2 || err3) throw new Error("Failed to fetch stats");
 
-  const uniqueGpus = new Set((uniqueGpusData || []).map((r) => r.gpu_name)).size;
-  const hashes = (aggData || []).map((r) => r.estimated_pearl_hash);
+  const uniqueGpus = new Set((uniqueGpusData || []).map((r: Record<string, unknown>) => r.gpu_name as string)).size;
+  const hashes = (aggData || []).map((r: Record<string, unknown>) => r.estimated_pearl_hash as number);
   const avgPearlHash = hashes.length > 0
-    ? Math.round((hashes.reduce((a, b) => a + b, 0) / hashes.length) * 100) / 100
+    ? Math.round((hashes.reduce((a: number, b: number) => a + b, 0) / hashes.length) * 100) / 100
     : 0;
   const topPearlHash = hashes.length > 0 ? Math.max(...hashes) : 0;
 
