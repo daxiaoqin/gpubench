@@ -247,6 +247,20 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─────── External Authority Links ─────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="text-center text-xs text-[--text-muted] space-x-3">
+          <span>Data sources:</span>
+          <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">CoinGecko</a>
+          <span>•</span>
+          <a href="https://whattomine.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">WhatToMine</a>
+          <span>•</span>
+          <a href="https://www.nvidia.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">NVIDIA GPU Specs</a>
+          <span>•</span>
+          <a href="https://www.amd.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">AMD GPU Specs</a>
+        </div>
+      </section>
     </div>
   );
 }

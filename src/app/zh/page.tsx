@@ -197,6 +197,16 @@ export default function ZhHomePage() {
       <div className="text-center text-xs text-[--text-muted] py-6 border-t border-[--border-color]">
         <p>数据仅供参考，实际算力和收益可能因硬件配置、驱动程序、温度环境等因素而异。</p>
         <p className="mt-1">© 2026 GPUBench.online — 显卡算力数据库</p>
+        <p className="mt-3 space-x-3">
+          <span>数据来源:</span>
+          <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">CoinGecko</a>
+          <span>•</span>
+          <a href="https://whattomine.com" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">WhatToMine</a>
+          <span>•</span>
+          <a href="https://www.nvidia.cn" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">NVIDIA</a>
+          <span>•</span>
+          <a href="https://www.amd.com/zh-hans" target="_blank" rel="noopener noreferrer" className="hover:text-[--text-primary] underline underline-offset-2">AMD</a>
+        </p>
       </div>
     </div>
   );

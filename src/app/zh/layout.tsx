@@ -17,9 +17,29 @@ export const metadata: Metadata = {
     "显卡挖矿收益",
     "GPU 挖矿 2026",
   ],
+  alternates: {
+    canonical: "https://gpubench.online/zh",
+  },
   openGraph: {
     title: "GPUBench — 显卡算力数据库 & 挖矿收益计算器",
     description: "最全面的显卡挖矿性能数据库，支持 24 张显卡、7 种算法、实时币价计算收益。",
+    url: "https://gpubench.online/zh",
+    siteName: "GPUBench.online",
+    locale: "zh_CN",
+    images: [
+      {
+        url: "https://gpubench.online/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "GPUBench.online — 显卡算力数据库 & 挖矿收益计算器",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GPUBench — 显卡算力数据库 & 挖矿收益计算器",
+    description: "最全面的显卡挖矿性能数据库，支持 24 张显卡、7 种算法、实时币价计算收益。",
+    images: ["https://gpubench.online/og-image.png"],
   },
   // Baidu specific meta
   other: {

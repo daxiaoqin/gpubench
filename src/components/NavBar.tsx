@@ -64,7 +64,7 @@ export default function NavBar() {
                   : "text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10"
               }`}
             >
-              🏅 Leaderboard
+              {isZh ? "🏅 排行榜" : "🏅 Leaderboard"}
             </a>
             {/* CTA button */}
             <a
