@@ -15,7 +15,7 @@
 
 # next.js
 /.next/
-# /out/ - tracked for Cloudflare Pages deployment
+/out/
 
 # production
 /build
