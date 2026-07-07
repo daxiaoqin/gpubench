@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase, getLeaderboard, getStats, type BenchmarkRow } from "@/lib/supabase";
+import { getLeaderboard, getStats, type BenchmarkRow } from "@/lib/supabase";
 
 interface Stats {
   totalSubmissions: number;

@@ -4,13 +4,27 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
+const missingCredentials = !supabaseUrl || !supabaseAnonKey;
+
+if (missingCredentials) {
   console.warn(
     "Supabase credentials missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local"
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Lazy client — only created when first accessed
+let _supabase: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  if (!_supabase) {
+    if (missingCredentials) {
+      throw new Error(
+        "Supabase credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      );
+    }
+    _supabase = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return _supabase;
+}
 
 export interface BenchmarkRow {
   id: number;
@@ -33,6 +47,7 @@ export async function submitBenchmark(data: {
   supported: boolean;
   gpuVendor?: string;
 }) {
+  const supabase = getSupabase();
   const { data: record, error } = await supabase
     .from("benchmarks")
     .insert({
@@ -52,6 +67,7 @@ export async function submitBenchmark(data: {
 
 /** Get leaderboard (sorted by estimated_pearl_hash DESC) */
 export async function getLeaderboard(limit = 50) {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("benchmarks")
     .select("*")
@@ -65,6 +81,7 @@ export async function getLeaderboard(limit = 50) {
 
 /** Get stats */
 export async function getStats() {
+  const supabase = getSupabase();
   const { count: totalSubmissions, error: err1 } = await supabase
     .from("benchmarks")
     .select("*", { count: "exact", head: true });
