@@ -1,8 +1,12 @@
 // Supabase client for browser-side database access
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://vgodkxdrrekqbezwhtqr.supabase.co";
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnb2RreGRycmVrcWJlendodHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMTI3NTMsImV4cCI6MjA5ODg4ODc1M30._YIoxjlRsc87rgIQFME9HYKyEd3r-ZUIk9rOaVOVAn0";
 
 const missingCredentials = !supabaseUrl || !supabaseAnonKey;
 
