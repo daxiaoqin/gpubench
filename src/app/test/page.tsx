@@ -195,7 +195,7 @@ export default function GPUBenchmarkPage() {
 
       // Set up projection
       const aspect = sCanvas.width / sCanvas.height;
-      const progLoc = sGl.getUniformLocation(program, "projection");
+      const progLoc = sGl.getUniformLocation(program!, "projection");
       sGl.uniformMatrix4fv(progLoc!, false,
         new Float32Array([
           1, 0, 0, 0,
@@ -219,7 +219,7 @@ export default function GPUBenchmarkPage() {
         const cos = Math.cos(rotation + i * 0.01);
         const sin = Math.sin(rotation + i * 0.01);
 
-        const mvLoc = sGl.getUniformLocation(program, "modelView");
+        const mvLoc = sGl.getUniformLocation(program!, "modelView");
         sGl.uniformMatrix4fv(mvLoc!, false,
           new Float32Array([
             cos, 0, sin, 0,
