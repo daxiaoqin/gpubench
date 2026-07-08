@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { runBenchmark, runWebGLBenchmark, ALGORITHM_RATIOS, type BenchmarkResult } from "@/lib/gpuBench";
+import { runBenchmark, runWebGLBenchmark, detectGPUs, ALGORITHM_RATIOS, type BenchmarkResult, type GPUDeviceInfo } from "@/lib/gpuBench";
 import { submitBenchmark } from "@/lib/supabase";
 
 // Static coin prices (fallback)
@@ -24,10 +24,21 @@ export default function BenchmarkPage() {
   const [elapsed, setElapsed] = useState(0);
   const [submitError, setSubmitError] = useState("");
   const [submittedId, setSubmittedId] = useState<number | null>(null);
+  const [availableGPUs, setAvailableGPUs] = useState<GPUDeviceInfo[]>([]);
+  const [selectedGPUIndex, setSelectedGPUIndex] = useState<number>(0);
+  const [gpuDetectionDone, setGpuDetectionDone] = useState(false);
   const timerRef = useRef<number>(0);
   const startTimeRef = useRef(0);
 
   useEffect(() => {
+    // Detect available GPUs on mount
+    detectGPUs().then((gpus) => {
+      if (gpus.length > 0) {
+        setAvailableGPUs(gpus);
+        setSelectedGPUIndex(gpus[0].index);
+      }
+      setGpuDetectionDone(true);
+    });
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -61,16 +72,20 @@ export default function BenchmarkPage() {
       return;
     }
 
-    // WebGPU path
+    // WebGPU path — use selected GPU
     setPhase("running");
     startTimeRef.current = performance.now();
     timerRef.current = window.setInterval(() => {
       setElapsed((performance.now() - startTimeRef.current) / 1000);
     }, 100);
 
-    runBenchmark((_time, _ops) => {
-      // progress callback
-    }).then((res) => {
+    runBenchmark(
+      (_time, _ops) => {
+        // progress callback
+      },
+      undefined,
+      selectedGPUIndex
+    ).then((res) => {
       clearInterval(timerRef.current);
       setElapsed((performance.now() - startTimeRef.current) / 1000);
       if (res.error) {
@@ -163,6 +178,46 @@ export default function BenchmarkPage() {
             : "WebGPU not detected. Falling back to WebGL2 rendering benchmark (less accurate)."}
         </p>
       </div>
+
+      {/* GPU Selection (when multiple GPUs detected) */}
+      {gpuDetectionDone && availableGPUs.length > 1 && phase === "idle" && (
+        <div className="bg-[--bg-secondary] border border-[--border-color] rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-semibold text-[--text-primary]">🎮 Select GPU</span>
+            <span className="text-xs text-[--text-muted]">{availableGPUs.length} GPU(s) detected</span>
+          </div>
+          <div className="space-y-2">
+            {availableGPUs.map((gpu) => (
+              <label
+                key={gpu.index}
+                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                  selectedGPUIndex === gpu.index
+                    ? "border-[--accent-green] bg-[--accent-green]/5"
+                    : "border-[--border-color] hover:border-[--text-muted]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="gpu-select"
+                  checked={selectedGPUIndex === gpu.index}
+                  onChange={() => setSelectedGPUIndex(gpu.index)}
+                  className="accent-[--accent-green]"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-[--text-primary]">{gpu.label}</div>
+                  <div className="text-xs text-[--text-muted]">
+                    {gpu.type === "webgpu" ? "WebGPU" : "WebGL2"}
+                    {gpu.vendor ? ` · ${gpu.vendor}` : ""}
+                  </div>
+                </div>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-[--text-muted] mt-3">
+            Select which GPU to benchmark. The benchmark will run exclusively on your chosen graphics card.
+          </p>
+        </div>
+      )}
 
       {/* Start Button */}
       {(phase === "idle" || phase === "detecting") && (

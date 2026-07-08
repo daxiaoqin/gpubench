@@ -1,5 +1,75 @@
 // GPU Mining Benchmark Engine — gpubench.online
 // Uses WebGPU compute shaders to measure real GPU mining hashrate
+
+// Module-level cache for discovered GPU adapters
+const adapterCache = new Map<number, GPUAdapter>();
+
+export interface GPUDeviceInfo {
+  label: string;
+  vendor: string;
+  type: 'webgpu' | 'webgl';
+  index: number;
+}
+
+// Detect all available GPU adapters/devices
+export async function detectGPUs(): Promise<GPUDeviceInfo[]> {
+  const devices: GPUDeviceInfo[] = [];
+  let index = 0;
+  adapterCache.clear();
+
+  // WebGPU paths
+  if (typeof navigator !== 'undefined' && navigator.gpu) {
+    const configs = [
+      { powerPreference: 'high-performance' as const },
+      { powerPreference: 'low-power' as const },
+      {},
+    ];
+
+    const seenLabels = new Set<string>();
+
+    for (const cfg of configs) {
+      try {
+        const adapter = await navigator.gpu.requestAdapter(cfg);
+        if (adapter) {
+          const info = (adapter as any).info || {};
+          const name = info.description || info.device || info.vendor || `GPU #${index}`;
+          const vendor = info.vendor || '';
+
+          if (!seenLabels.has(name)) {
+            seenLabels.add(name);
+            adapterCache.set(index, adapter);
+            devices.push({ label: name, vendor, type: 'webgpu', index });
+            index++;
+          }
+        }
+      } catch {
+        // Ignore errors during enumeration
+      }
+    }
+  }
+
+  // WebGL2 fallback detection
+  if (typeof document !== 'undefined') {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2', { powerPreference: 'high-performance' }) as WebGL2RenderingContext | null;
+      if (gl) {
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        if (ext) {
+          const renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) as string;
+          if (renderer && !devices.some(d => d.label === renderer)) {
+            devices.push({ label: renderer, vendor: '', type: 'webgl', index });
+            index++;
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  return devices;
+}
 // Fixed: proper work counting, no encoder reuse bug, time-based measurement
 
 // WGSL compute shader: SHA-256 style hash workload
@@ -116,7 +186,8 @@ export const ALGORITHM_RATIOS = [
 // WebGPU benchmark — main entry
 export async function runBenchmark(
   onProgress?: (elapsed: number, ops: number) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  adapterIndex?: number
 ): Promise<BenchmarkResult> {
   try {
     if (!navigator.gpu) {
@@ -124,7 +195,9 @@ export async function runBenchmark(
       return runWebGLBenchmark();
     }
 
-    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    const adapter = adapterIndex !== undefined && adapterCache.has(adapterIndex)
+      ? adapterCache.get(adapterIndex)!
+      : await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
     if (!adapter) {
       return {
         rawScore: 0,
