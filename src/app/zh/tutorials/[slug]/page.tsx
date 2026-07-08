@@ -24,7 +24,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${tutorial.title} — 显卡挖矿教程`,
       description: tutorial.description,
-      url: `https://gpubench.online/zh/tutorials/${slug}`,
+      url: `https://gpubench.online/zh/tutorials/${slug}/`,
+      images: [{ url: "https://gpubench.online/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${tutorial.title} — 显卡挖矿教程`,
+      description: tutorial.description,
+      images: ["https://gpubench.online/og-image.png"],
     },
   };
 }
