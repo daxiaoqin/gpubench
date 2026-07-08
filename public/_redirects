@@ -1,27 +1,2 @@
 # Cloudflare Pages redirects
-# /zh trailing slash redirect to non-trailing-slash
-/zh/ /zh 301
-
-# Tutorial pages: extensionless URLs → .html
-/tutorials/what-is-gpu-mining /tutorials/what-is-gpu-mining.html 200
-/tutorials/choose-gpu-mining-2026 /tutorials/choose-gpu-mining-2026.html 200
-/tutorials/peakminer-setup-guide /tutorials/peakminer-setup-guide.html 200
-/tutorials/hashrate-power-efficiency /tutorials/hashrate-power-efficiency.html 200
-/tutorials/power-limiting-guide /tutorials/power-limiting-guide.html 200
-/tutorials/multi-gpu-setup /tutorials/multi-gpu-setup.html 200
-/tutorials/mining-pool-strategies /tutorials/mining-pool-strategies.html 200
-/tutorials/windows-vs-linux-mining /tutorials/windows-vs-linux-mining.html 200
-/tutorials/calculate-profitability /tutorials/calculate-profitability.html 200
-/tutorials/common-mining-issues /tutorials/common-mining-issues.html 200
-
-# Chinese tutorial pages
-/zh/tutorials/what-is-gpu-mining /zh/tutorials/what-is-gpu-mining.html 200
-/zh/tutorials/choose-gpu-mining-2026 /zh/tutorials/choose-gpu-mining-2026.html 200
-/zh/tutorials/peakminer-setup-guide /zh/tutorials/peakminer-setup-guide.html 200
-/zh/tutorials/hashrate-power-efficiency /zh/tutorials/hashrate-power-efficiency.html 200
-/zh/tutorials/power-limiting-guide /zh/tutorials/power-limiting-guide.html 200
-/zh/tutorials/multi-gpu-setup /zh/tutorials/multi-gpu-setup.html 200
-/zh/tutorials/mining-pool-strategies /zh/tutorials/mining-pool-strategies.html 200
-/zh/tutorials/windows-vs-linux-mining /zh/tutorials/windows-vs-linux-mining.html 200
-/zh/tutorials/calculate-profitability /zh/tutorials/calculate-profitability.html 200
-/zh/tutorials/common-mining-issues /zh/tutorials/common-mining-issues.html 200
+# Empty — trailingSlash handles everything
