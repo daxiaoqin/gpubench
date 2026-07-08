@@ -17,7 +17,7 @@ const zhNav = [
   { href: "/zh/coins", label: "币种" },
   { href: "/zh/miners", label: "矿工" },
   { href: "/zh/pools", label: "矿池" },
-  { href: "/benchmark", label: "🏆 测速" },
+  { href: "/zh/benchmark", label: "🏆 测速" },
 ];
 
 export default function NavBar() {

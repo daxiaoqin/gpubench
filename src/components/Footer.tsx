@@ -17,15 +17,15 @@ export default function Footer() {
             <span>{isZh ? "GPUBench.online — 显卡算力数据库" : "GPUBench.online — GPU Hashrate Database"}</span>
           </div>
           <div className="flex items-center gap-3 text-[--text-muted] text-xs flex-wrap justify-center">
-            <a href="/benchmark" className="hover:text-[--text-primary]">{isZh ? "测速" : "Benchmark"}</a>
+            <a href={isZh ? "/zh/benchmark" : "/benchmark"} className="hover:text-[--text-primary]">{isZh ? "测速" : "Benchmark"}</a>
             <span>•</span>
             <a href="/leaderboard" className="hover:text-[--text-primary]">{isZh ? "排行榜" : "Leaderboard"}</a>
             <span>•</span>
-            <a href="/tutorials" className="hover:text-[--text-primary]">{isZh ? "教程" : "Tutorials"}</a>
+            <a href={isZh ? "/zh/tutorials" : "/tutorials"} className="hover:text-[--text-primary]">{isZh ? "教程" : "Tutorials"}</a>
             <span>•</span>
-            <a href="/miners" className="hover:text-[--text-primary]">{isZh ? "矿工" : "Miners"}</a>
+            <a href={isZh ? "/zh/miners" : "/miners"} className="hover:text-[--text-primary]">{isZh ? "矿工" : "Miners"}</a>
             <span>•</span>
-            <a href="/pools" className="hover:text-[--text-primary]">{isZh ? "矿池" : "Pools"}</a>
+            <a href={isZh ? "/zh/pools" : "/pools"} className="hover:text-[--text-primary]">{isZh ? "矿池" : "Pools"}</a>
             <span>•</span>
             <a href="/zh" className="hover:text-[--text-primary]">{isZh ? "中文版" : "中文版"}</a>
             <span>•</span>
