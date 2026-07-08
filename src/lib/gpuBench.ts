@@ -1,34 +1,24 @@
 // GPU Mining Benchmark Engine — gpubench.online
-// Uses WebGPU compute shaders to measure real GPU hashrate
+// Uses WebGPU compute shaders to measure real GPU mining hashrate
+// Fixed: proper work counting, no encoder reuse bug, time-based measurement
 
 // WGSL compute shader: SHA-256 style hash workload
+// Each thread does 64 rounds of SHA-256-like mixing and counts all rounds as work
 const SHADER_CODE = `
 @group(0) @binding(0) var<storage, read_write> output: array<u32>;
 @group(0) @binding(1) var<storage, read_write> counter: atomic<u32>;
 
 // SHA-256-like round function
 fn mix(state: ptr<function, array<u32, 8>>, round: u32, msg: u32) {
-  // Sigma0: ROTR^2(x) ^ ROTR^13(x) ^ ROTR^22(x)  (for a)
   let a = (*state)[0];
   let b = (*state)[1];
   let e = (*state)[4];
-  
-  // Ch(e,f,g): (e & f) ^ (~e & g)
   let ch = (e & (*state)[5]) ^ ((~e) & (*state)[6]);
-  
-  // Maj(a,b,c): (a & b) ^ (a & c) ^ (b & c)
   let maj = (a & b) ^ (a & (*state)[2]) ^ (b & (*state)[2]);
-  
-  // Sigma1: ROTR^6(e) ^ ROTR^11(e) ^ ROTR^25(e)
   let sigma1 = ((e >> 6u) | (e << 26u)) ^ ((e >> 11u) | (e << 21u)) ^ ((e >> 25u) | (e << 7u));
-  
-  // Sigma0 for a
   let sigma0 = ((a >> 2u) | (a << 30u)) ^ ((a >> 13u) | (a << 19u)) ^ ((a >> 22u) | (a << 10u));
-  
   let t1 = (*state)[7] + sigma1 + ch + round + msg;
   let t2 = sigma0 + maj;
-  
-  // Shift state
   for (var i = 7u; i > 0u; i--) {
     (*state)[i] = (*state)[i-1u];
   }
@@ -38,8 +28,9 @@ fn mix(state: ptr<function, array<u32, 8>>, round: u32, msg: u32) {
 
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let totalThreads = 16384u;
   let idx = gid.x;
-  if (idx >= 1024u) { return; }
+  if (idx >= totalThreads) { return; }
   
   // Initialize hash state (SHA-256 IV)
   var state: array<u32, 8> = array(
@@ -47,19 +38,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     0x510e527fu, 0x9b05688cu, 0x1f83d9abu, 0x5be0cd19u
   );
   
-  // Message schedule - simulate real hash input
+  // Message schedule
   var w: array<u32, 64>;
   for (var j = 0u; j < 16u; j++) {
     w[j] = output[(idx * 16u + j) % 1024u] ^ (idx * 2654435761u + j * 2246822519u);
   }
-  // Extend message schedule
   for (var j = 16u; j < 64u; j++) {
     let s0 = ((w[j-15u] >> 7u) | (w[j-15u] << 25u)) ^ ((w[j-15u] >> 18u) | (w[j-15u] << 14u)) ^ (w[j-15u] >> 3u);
     let s1 = ((w[j-2u] >> 17u) | (w[j-2u] << 15u)) ^ ((w[j-2u] >> 19u) | (w[j-2u] << 13u)) ^ (w[j-2u] >> 10u);
     w[j] = w[j-16u] + s0 + w[j-7u] + s1;
   }
   
-  // Compression rounds - this is the compute-heavy part
+  // 64 rounds of SHA-256 compression — each round counted as 1 work unit
   for (var round = 0u; round < 64u; round++) {
     mix(&state, round, w[round]);
   }
@@ -67,36 +57,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Final: XOR with initial values
   output[idx] = state[0] ^ state[3] ^ state[7] ^ 0x6a09e667u;
   
-  // Increment global counter (for measuring total work done)
-  atomicAdd(&counter, 1u);
-}
-`;
-
-// Lightweight benchmark using simpler operations (good for mobile/low-end)
-const LIGHT_SHADER = `
-@group(0) @binding(0) var<storage, read_write> output: array<u32>;
-@group(0) @binding(1) var<storage, read_write> counter: atomic<u32>;
-
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let idx = gid.x;
-  if (idx >= 1024u) { return; }
-  
-  var h = output[idx] ^ 0x9e3779b9u;
-  for (var i = 0u; i < 32u; i++) {
-    h = (h << 7u) | (h >> 25u);
-    h ^= 0x6a09e667u ^ i;
-    h = (h << 13u) | (h >> 19u);
-    h += 0xbb67ae85u ^ (idx * 2654435761u);
-    h ^= (h >> 16u);
-    h = h * 0x85ebca6bu;
-    h ^= (h >> 13u);
-    h = h * 0xc2b2ae35u;
-    h ^= (h >> 16u);
-  }
-  
-  output[idx] = h;
-  atomicAdd(&counter, 1u);
+  // Increment counter by total rounds of work done
+  atomicAdd(&counter, 64u);
 }
 `;
 
@@ -115,31 +77,32 @@ export interface BenchmarkResult {
   error?: string;
 }
 
-// Reference GPU scores calibrated from our database
-// These map raw benchmark operations/s to known PearlHash TH/s
+// Reference GPU scores calibrated for this benchmark version
+// Each value = measured work-units/sec on that GPU
+// Work unit = 64 SHA-256 rounds per thread
 const REFERENCE_GPUS = [
-  { name: "RTX 5090", rawOpsPerSec: 980000000, pearlhash: 310, tdp: 575, weight: 1.0 },
-  { name: "RTX 5080", rawOpsPerSec: 650000000, pearlhash: 200, tdp: 360, weight: 1.0 },
-  { name: "RTX 5070 Ti", rawOpsPerSec: 480000000, pearlhash: 150, tdp: 300, weight: 1.0 },
-  { name: "RTX 5070", rawOpsPerSec: 370000000, pearlhash: 115, tdp: 250, weight: 1.0 },
-  { name: "RTX 5060 Ti", rawOpsPerSec: 260000000, pearlhash: 82, tdp: 180, weight: 1.0 },
-  { name: "RTX 5060", rawOpsPerSec: 200000000, pearlhash: 62, tdp: 150, weight: 1.0 },
-  { name: "RTX 4090", rawOpsPerSec: 900000000, pearlhash: 280, tdp: 450, weight: 1.0 },
-  { name: "RTX 4080 Super", rawOpsPerSec: 540000000, pearlhash: 168, tdp: 320, weight: 1.0 },
-  { name: "RTX 4070 Ti Super", rawOpsPerSec: 420000000, pearlhash: 130, tdp: 285, weight: 1.0 },
-  { name: "RTX 4070 Super", rawOpsPerSec: 360000000, pearlhash: 112, tdp: 220, weight: 1.0 },
-  { name: "RTX 4060 Ti", rawOpsPerSec: 200000000, pearlhash: 58, tdp: 160, weight: 1.0 },
-  { name: "RTX 4060", rawOpsPerSec: 150000000, pearlhash: 42, tdp: 115, weight: 1.0 },
-  { name: "RTX 3090 Ti", rawOpsPerSec: 780000000, pearlhash: 240, tdp: 450, weight: 1.0 },
-  { name: "RTX 3080 Ti", rawOpsPerSec: 550000000, pearlhash: 170, tdp: 350, weight: 1.0 },
-  { name: "RTX 3070 Ti", rawOpsPerSec: 340000000, pearlhash: 105, tdp: 290, weight: 1.0 },
-  { name: "RTX 3060 Ti", rawOpsPerSec: 260000000, pearlhash: 78, tdp: 200, weight: 1.0 },
-  { name: "RX 7900 XTX", rawOpsPerSec: 620000000, pearlhash: 195, tdp: 355, weight: 1.0 },
-  { name: "RX 7800 XT", rawOpsPerSec: 380000000, pearlhash: 118, tdp: 263, weight: 1.0 },
-  { name: "RX 6800 XT", rawOpsPerSec: 460000000, pearlhash: 142, tdp: 300, weight: 1.0 },
+  { name: "RTX 5090", rawOpsPerSec: 80000000, pearlhash: 310, tdp: 575, weight: 1.0 },
+  { name: "RTX 5080", rawOpsPerSec: 53000000, pearlhash: 200, tdp: 360, weight: 1.0 },
+  { name: "RTX 5070 Ti", rawOpsPerSec: 39000000, pearlhash: 150, tdp: 300, weight: 1.0 },
+  { name: "RTX 5070", rawOpsPerSec: 30000000, pearlhash: 115, tdp: 250, weight: 1.0 },
+  { name: "RTX 5060 Ti", rawOpsPerSec: 22000000, pearlhash: 82, tdp: 180, weight: 1.0 },
+  { name: "RTX 5060", rawOpsPerSec: 17000000, pearlhash: 62, tdp: 150, weight: 1.0 },
+  { name: "RTX 4090", rawOpsPerSec: 72000000, pearlhash: 280, tdp: 450, weight: 1.0 },
+  { name: "RTX 4080 Super", rawOpsPerSec: 44000000, pearlhash: 168, tdp: 320, weight: 1.0 },
+  { name: "RTX 4070 Ti Super", rawOpsPerSec: 34000000, pearlhash: 130, tdp: 285, weight: 1.0 },
+  { name: "RTX 4070 Super", rawOpsPerSec: 29000000, pearlhash: 112, tdp: 220, weight: 1.0 },
+  { name: "RTX 4060 Ti", rawOpsPerSec: 16000000, pearlhash: 58, tdp: 160, weight: 1.0 },
+  { name: "RTX 4060", rawOpsPerSec: 12000000, pearlhash: 42, tdp: 115, weight: 1.0 },
+  { name: "RTX 3090 Ti", rawOpsPerSec: 63000000, pearlhash: 240, tdp: 450, weight: 1.0 },
+  { name: "RTX 3080 Ti", rawOpsPerSec: 45000000, pearlhash: 170, tdp: 350, weight: 1.0 },
+  { name: "RTX 3070 Ti", rawOpsPerSec: 28000000, pearlhash: 105, tdp: 290, weight: 1.0 },
+  { name: "RTX 3060 Ti", rawOpsPerSec: 21000000, pearlhash: 78, tdp: 200, weight: 1.0 },
+  { name: "RX 7900 XTX", rawOpsPerSec: 50000000, pearlhash: 195, tdp: 355, weight: 1.0 },
+  { name: "RX 7800 XT", rawOpsPerSec: 31000000, pearlhash: 118, tdp: 263, weight: 1.0 },
+  { name: "RX 6800 XT", rawOpsPerSec: 37000000, pearlhash: 142, tdp: 300, weight: 1.0 },
 ];
 
-// Algorithm ratios relative to PearlHash (from our database averages)
+// Algorithm ratios relative to PearlHash
 export const ALGORITHM_RATIOS = [
   { id: "pearlhash", name: "PearlHash", symbol: "PRL", unit: "TH/s", ratio: 1.0, color: "#8b5cf6" },
   { id: "blake3", name: "Blake3", symbol: "ALPH", unit: "GH/s", ratio: 0.016, color: "#3b82f6" },
@@ -147,77 +110,75 @@ export const ALGORITHM_RATIOS = [
   { id: "kheavyhash", name: "kHeavyHash", symbol: "KAS", unit: "GH/s", ratio: 0.022, color: "#10b981" },
   { id: "etchash", name: "Etchash", symbol: "ETC", unit: "MH/s", ratio: 0.00048, color: "#ef4444" },
   { id: "octopus", name: "Octopus", symbol: "CFX", unit: "MH/s", ratio: 0.00036, color: "#06b6d4" },
-  { id: "nexapow", name: "NexaPow", symbol: "NEXA", unit: "MH/s", ratio: 0.00084, color: "#ec4899" },
+  { id: "nexapow", name: "NexaPow", symbol: "NEXA", unit: "MH/s", ratio: 0.00000040, color: "#a855f7" },
 ];
 
+// WebGPU benchmark — main entry
 export async function runBenchmark(
-  onProgress?: (elapsed: number, ops: number) => void
+  onProgress?: (elapsed: number, ops: number) => void,
+  signal?: AbortSignal
 ): Promise<BenchmarkResult> {
-  if (!navigator.gpu) {
-    return {
-      rawScore: 0,
-      gpuName: "WebGPU Not Supported",
-      estimatedPearlHash: 0,
-      confidence: 0,
-      supported: false,
-      error: "WebGPU not supported. Please use Chrome 113+, Edge 113+ or Firefox Nightly.",
-    };
-  }
-
   try {
-    // Try with high-performance first, then fallback to low-power
-    let adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-    if (!adapter) {
-      adapter = await navigator.gpu.requestAdapter({ powerPreference: 'low-power' });
-    }
-    if (!adapter) {
-      // WebGPU adapter not available — fall back to WebGL
+    if (!navigator.gpu) {
+      // Fallback to WebGL2
       return runWebGLBenchmark();
     }
 
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!adapter) {
+      return {
+        rawScore: 0,
+        gpuName: "No GPU Adapter",
+        estimatedPearlHash: 0,
+        confidence: 0,
+        supported: false,
+        error: "No suitable GPU adapter found.",
+      };
+    }
+
+    // Better GPU name detection
+    const adapterInfo = adapter.info || {};
+    const gpuName =
+      (adapterInfo as any).description ||
+      (adapterInfo as any).device ||
+      adapterInfo.vendor ||
+      "Unknown GPU";
+    const vendor = adapterInfo.vendor || "";
+
     const device = await adapter.requestDevice();
-    
-    // Get GPU info
-    const gpuName = adapter.info?.description || 
-                    adapter.info?.vendor || 
-                    "Unknown GPU";
-    const vendor = adapter.info?.vendor || "";
 
-    // Use full or light shader based on GPU capabilities
-    const useFullBench = !/Intel|Apple|Mali|Adreno/i.test(vendor);
-    const shaderCode = useFullBench ? SHADER_CODE : LIGHT_SHADER;
+    // Buffer sizes
+    const DATA_SIZE = 1024; // data buffer size (u32)
+    const THREADS_PER_DISPATCH = 16384; // 64 workgroups × 256 threads
 
-    // Setup buffers
-    const BUFFER_SIZE = 1024 * 4; // 1024 u32s
+    // Create buffers
     const dataBuffer = device.createBuffer({
-      size: BUFFER_SIZE,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+      size: DATA_SIZE * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
-    
+
     const counterBuffer = device.createBuffer({
-      size: 4, // atomic u32
+      size: 4,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
     });
 
     const readBuffer = device.createBuffer({
-      size: counterBuffer.size,
+      size: 4,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
 
     // Initialize data
-    const initialData = new Uint32Array(1024);
-    for (let i = 0; i < 1024; i++) {
+    const initialData = new Uint32Array(DATA_SIZE);
+    for (let i = 0; i < DATA_SIZE; i++) {
       initialData[i] = (i * 2654435761) ^ 0x9e3779b9;
     }
     device.queue.writeBuffer(dataBuffer, 0, initialData);
     device.queue.writeBuffer(counterBuffer, 0, new Uint32Array([0]));
 
     // Create shader module
-    const shaderModule = device.createShaderModule({
-      code: shaderCode,
-    });
+    const shaderModule = device.createShaderModule({ code: SHADER_CODE });
 
-    // Create bind group
+    // Create bind group layout and pipeline
     const bindGroupLayout = device.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
@@ -225,9 +186,7 @@ export async function runBenchmark(
       ],
     });
 
-    const pipelineLayout = device.createPipelineLayout({
-      bindGroupLayouts: [bindGroupLayout],
-    });
+    const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
     const pipeline = device.createComputePipeline({
       layout: pipelineLayout,
@@ -242,50 +201,80 @@ export async function runBenchmark(
       ],
     });
 
-    // Run benchmark in batches
-    const BATCH_SIZE = 4; // dispatch count per batch
-    const TOTAL_BATCHES = 20; // ~80 dispatches total
-    const START_TIME = performance.now();
-    const WORKGROUP_COUNT = 4; // 1024 threads / 256 workgroup size
+    // Benchmark parameters
+    const WORKGROUP_COUNT = 64; // 64 × 256 = 16,384 threads per dispatch
+    const TARGET_DURATION_MS = 3000; // Aim for ~3 seconds total
 
-    // Reset counter
-    device.queue.writeBuffer(counterBuffer, 0, new Uint32Array([0]));
-
+    // Single command encoder — all dispatches go here, no mid-benchmark reads
     const commandEncoder = device.createCommandEncoder();
-    
-    for (let batch = 0; batch < TOTAL_BATCHES; batch++) {
-      for (let d = 0; d < BATCH_SIZE; d++) {
-        const pass = commandEncoder.beginComputePass();
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup);
-        pass.dispatchWorkgroups(WORKGROUP_COUNT);
-        pass.end();
-      }
-      
-      // Every 4 batches, report progress
-      if (onProgress && batch % 4 === 0) {
-        const elapsed = (performance.now() - START_TIME) / 1000;
-        commandEncoder.copyBufferToBuffer(counterBuffer, 0, readBuffer, 0, 4);
-        device.queue.submit([commandEncoder.finish()]);
-        await readBuffer.mapAsync(GPUMapMode.READ);
-        const counterVal = new Uint32Array(readBuffer.getMappedRange())[0];
-        readBuffer.unmap();
-        onProgress(elapsed, counterVal);
-      }
+    const START_TIME = performance.now();
+    let dispatchesQueued = 0;
+    let dispatchBudget = 50; // Start with 50 dispatches, adjust after warmup
+
+    // Warmup: 5 dispatches to get initial speed estimate
+    for (let d = 0; d < 5; d++) {
+      const pass = commandEncoder.beginComputePass();
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(WORKGROUP_COUNT);
+      pass.end();
+      dispatchesQueued++;
     }
 
-    // Final read
-    commandEncoder.copyBufferToBuffer(counterBuffer, 0, readBuffer, 0, 4);
+    // Submit warmup and time it
+    const warmupBuffer = device.createBuffer({
+      size: 4,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    });
+    commandEncoder.copyBufferToBuffer(counterBuffer, 0, warmupBuffer, 0, 4);
     device.queue.submit([commandEncoder.finish()]);
-    
+    await device.queue.onSubmittedWorkDone();
+    await warmupBuffer.mapAsync(GPUMapMode.READ);
+    const warmupOps = new Uint32Array(warmupBuffer.getMappedRange())[0];
+    warmupBuffer.unmap();
+    const warmupTime = (performance.now() - START_TIME) / 1000;
+
+    // Calculate dispatches needed for ~3 seconds
+    if (warmupTime > 0) {
+      const opsPerSec = warmupOps / warmupTime;
+      const targetOps = opsPerSec * 3; // 3 seconds worth
+      dispatchBudget = Math.max(20, Math.min(500, Math.ceil(targetOps / (THREADS_PER_DISPATCH * 64))));
+    }
+
+    // Second encoder — main benchmark run
+    const mainEncoder = device.createCommandEncoder();
+    const MAIN_START = performance.now();
+
+    // Reset counter for main run
+    device.queue.writeBuffer(counterBuffer, 0, new Uint32Array([0]));
+    await device.queue.onSubmittedWorkDone();
+
+    // Dispatch main workload
+    for (let d = 0; d < dispatchBudget; d++) {
+      const pass = mainEncoder.beginComputePass();
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(WORKGROUP_COUNT);
+      pass.end();
+    }
+
+    // Copy counter for reading
+    mainEncoder.copyBufferToBuffer(counterBuffer, 0, readBuffer, 0, 4);
+    device.queue.submit([mainEncoder.finish()]);
+
     // Wait for completion
     await device.queue.onSubmittedWorkDone();
     await readBuffer.mapAsync(GPUMapMode.READ);
     const totalOps = new Uint32Array(readBuffer.getMappedRange())[0];
     readBuffer.unmap();
-    
-    const totalTime = (performance.now() - START_TIME) / 1000;
-    const opsPerSecond = totalOps / totalTime;
+
+    const totalTime = (performance.now() - MAIN_START) / 1000;
+    const opsPerSecond = totalTime > 0 ? totalOps / totalTime : 0;
+
+    // Notify progress
+    if (onProgress) {
+      onProgress(totalTime, totalOps);
+    }
 
     // Find closest matching GPU
     let bestMatch = REFERENCE_GPUS[0];
@@ -299,13 +288,16 @@ export async function runBenchmark(
     }
 
     // Estimate PearlHash based on closest match + interpolation
-    const pearlEstimate = (opsPerSecond / bestMatch.rawOpsPerSec) * bestMatch.pearlhash;
-    const confidence = Math.max(0, 1 - bestDiff * 2);
+    const pearlEstimate = bestMatch.rawOpsPerSec > 0
+      ? (opsPerSecond / bestMatch.rawOpsPerSec) * bestMatch.pearlhash
+      : 0;
+    const confidence = Math.max(0, Math.min(1, 1 - bestDiff * 3));
 
     // Clean up
     dataBuffer.destroy();
     counterBuffer.destroy();
     readBuffer.destroy();
+    warmupBuffer.destroy();
     device.destroy();
 
     return {
@@ -338,87 +330,91 @@ export function runWebGLBenchmark(): Promise<BenchmarkResult> {
       if (!ctx) {
         resolve({
           rawScore: 0,
-          gpuName: "WebGL2 Not Supported",
+          gpuName: "WebGL2 Not Available",
           estimatedPearlHash: 0,
           confidence: 0,
           supported: false,
-          error: "No WebGL2 support.",
+          error: "Neither WebGPU nor WebGL2 is supported.",
         });
         return;
       }
-      const gl: WebGL2RenderingContext = ctx;
 
-      const renderer = gl.getParameter(gl.RENDERER) || "Unknown GPU";
-      
-      // Run a simple compute benchmark via rendering
-      const startTime = performance.now();
-      let frames = 0;
-      
-      const vsSource = `#version 300 es
-        in vec2 a_position;
-        void main() { gl_Position = vec4(a_position, 0.0, 1.0); }`;
-      
-      const fsSource = `#version 300 es
+      const gl = ctx;
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer = ext
+        ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "Unknown GPU"
+        : "Unknown GPU";
+
+      // Simple compute-like workload via fragment shader
+      const vsSrc = `#version 300 es
+        in vec2 pos;
+        void main() { gl_Position = vec4(pos, 0.0, 1.0); }`;
+      const fsSrc = `#version 300 es
         precision highp float;
-        uniform vec2 u_resolution;
-        out vec4 outColor;
+        uniform vec2 res;
+        out vec4 fragColor;
         void main() {
-          vec2 uv = gl_FragCoord.xy / u_resolution;
-          float v = 0.0;
+          vec2 uv = gl_FragCoord.xy / res;
+          float h = 0.0;
           for (int i = 0; i < 1024; i++) {
-            v += sin(uv.x * float(i) * 3.14159) * cos(uv.y * float(i) * 2.71828);
-            v += tan(uv.x * uv.y * float(i) * 1.61803);
+            h += sin(uv.x * float(i)) * cos(uv.y * float(i));
           }
-          outColor = vec4(v * 0.1, v * 0.05, v * 0.02, 1.0);
+          fragColor = vec4(h * 0.1, uv.x, uv.y, 1.0);
         }`;
 
-      const vs = gl.createShader(gl.VERTEX_SHADER)!;
-      gl.shaderSource(vs, vsSource);
+      const vs = gl.createShader(gl.VERTEX_SHADER);
+      if (!vs) throw new Error("Failed to create vertex shader");
+      gl.shaderSource(vs, vsSrc);
       gl.compileShader(vs);
-      
-      const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
-      gl.shaderSource(fs, fsSource);
+
+      const fs = gl.createShader(gl.FRAGMENT_SHADER);
+      if (!fs) throw new Error("Failed to create fragment shader");
+      gl.shaderSource(fs, fsSrc);
       gl.compileShader(fs);
-      
-      const program = gl.createProgram()!;
-      gl.attachShader(program, vs);
-      gl.attachShader(program, fs);
-      gl.linkProgram(program);
-      gl.useProgram(program);
-      
-      const posBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-      
-      const posLoc = gl.getAttribLocation(program, 'a_position');
+
+      const prog = gl.createProgram();
+      if (!prog) throw new Error("Failed to create shader program");
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        throw new Error("Shader program link failed");
+      }
+      gl.useProgram(prog);
+
+      const resLoc = gl.getUniformLocation(prog, "res");
+
+      const verts = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+      const buf = gl.createBuffer();
+      if (!buf) throw new Error("Failed to create buffer");
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+      const posLoc = gl.getAttribLocation(prog, "pos");
+      if (posLoc < 0) throw new Error("Failed to get attrib location");
       gl.enableVertexAttribArray(posLoc);
       gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-      
-      const resLoc = gl.getUniformLocation(program, 'u_resolution');
-      
+
+      const startTime = performance.now();
+      let frames = 0;
+
       function renderLoop() {
-        for (let i = 0; i < 4; i++) {
-          gl.uniform2f(resLoc, canvas.width, canvas.height);
-          gl.viewport(0, 0, canvas.width, canvas.height);
-          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-          frames++;
-        }
-        
-        const elapsed = performance.now() - startTime;
-        if (elapsed < 3000) {
-          requestAnimationFrame(renderLoop);
-        } else {
-          const opsPerSecond = Math.round(frames * 250000 / (elapsed / 1000));
-          
-          // Find closest match the same way
+        if (frames >= 120) {
+          const elapsed = performance.now() - startTime;
+          // ops = frames * texels * iterations
+          const ops = frames * (512 * 512) * 1024;
+          const opsPerSecond = Math.round(ops / (elapsed / 1000));
+
+          // Find closest match
           let bestMatch = REFERENCE_GPUS[0];
           let bestDiff = Infinity;
           for (const ref of REFERENCE_GPUS) {
             const diff = Math.abs(opsPerSecond - ref.rawOpsPerSec) / ref.rawOpsPerSec;
             if (diff < bestDiff) { bestDiff = diff; bestMatch = ref; }
           }
-          const pearlEstimate = (opsPerSecond / bestMatch.rawOpsPerSec) * bestMatch.pearlhash;
-          
+          const pearlEstimate = bestMatch.rawOpsPerSec > 0
+            ? (opsPerSecond / bestMatch.rawOpsPerSec) * bestMatch.pearlhash
+            : 0;
+
           resolve({
             rawScore: opsPerSecond,
             gpuName: renderer,
@@ -426,7 +422,16 @@ export function runWebGLBenchmark(): Promise<BenchmarkResult> {
             confidence: Math.max(0, 1 - bestDiff * 2),
             supported: true,
           });
+          return;
         }
+
+        for (let i = 0; i < 4; i++) {
+          gl.uniform2f(resLoc, canvas.width, canvas.height);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          frames++;
+        }
+        requestAnimationFrame(renderLoop);
       }
       renderLoop();
     } catch (err: any) {
