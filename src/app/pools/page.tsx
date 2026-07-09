@@ -105,6 +105,23 @@ const pools = [
     cons: ["Lower hashrate", "No PearlHash support"],
     recommended: false,
   },
+  {
+    id: "zpool",
+    name: "Zpool",
+    url: "https://zpool.ca",
+    logo: "Z",
+    color: "#14b8a6",
+    type: "Multi-coin",
+    algorithms: ["KawPow", "Etchash", "kHeavyHash", "Blake3", "BTX-MatMul"],
+    fee: "0.9%",
+    payout: "0.001 BTX minimum",
+    minPayout: "$0.01 equivalent",
+    location: ["US", "EU", "Asia"],
+    features: ["PPLNS", "Auto-exchange", "API", "Low minimum payout", "Multi-algo switching"],
+    pros: ["Auto-exchange to BTC", "Low fees", "Good for small miners", "Supports BTX"],
+    cons: ["Not all algorithms supported", "No PearlHash"],
+    recommended: false,
+  },
 ];
 
 export default function PoolsPage() {

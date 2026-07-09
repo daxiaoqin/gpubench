@@ -123,6 +123,25 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
       return null;
     }
   },
+
+  // Bitcore — via public explorer API
+  "btx-matmul": async () => {
+    try {
+      const res = await fetch("https://explorer.bitcore.cc/api/networkinfo", {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const networkMhs = data?.networkhashrate ?? data?.hashrate ?? 0;
+      if (networkMhs <= 0) return null;
+      return {
+        networkHashrate: networkMhs, // MH/s
+        dailyReward: 72000, // ~72K BTX/day
+      };
+    } catch {
+      return null;
+    }
+  },
 };
 
 // Default fallback values (used when live fetch fails)
@@ -172,6 +191,13 @@ export const defaultNetworkData: Record<string, NetworkInfo> = {
   nexapow: {
     networkHashrate: 8000000, // MH/s (~8 TH/s)
     dailyReward: 32000000000,
+    unit: "MH/s",
+    lastUpdated: null,
+    source: "Estimated (live API fallback)",
+  },
+  "btx-matmul": {
+    networkHashrate: 350000, // MH/s (~350 GH/s)
+    dailyReward: 72000,
     unit: "MH/s",
     lastUpdated: null,
     source: "Estimated (live API fallback)",

@@ -21,6 +21,7 @@ const algoToCoinId: Record<string, string> = {
   etchash: "ethereum-classic",
   octopus: "conflux",
   nexapow: "nexa",
+  "btx-matmul": "bitcore",
 };
 
 export default function CalculatorPage() {

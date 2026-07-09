@@ -13,6 +13,7 @@ const COIN_PRICES: Record<string, number> = {
   etchash: 7.25,
   octopus: 0.0455,
   nexapow: 0.00000040,
+  "btx-matmul": 0.18,
 };
 
 type Phase = "idle" | "detecting" | "running" | "done" | "error" | "submitting" | "submitted";

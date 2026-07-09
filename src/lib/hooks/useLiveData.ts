@@ -14,7 +14,7 @@ import { fetchLiveNetworkData, defaultNetworkData, NetworkInfo } from "@/lib/net
 //   others → standard IDs
 
 const COINGECKO_URL =
-  "https://api.coingecko.com/api/v3/simple/price?ids=pearl-2,alephium,ravencoin,kaspa,ethereum-classic,conflux-token,nexacoin&vs_currencies=usd&include_24hr_change=true";
+  "https://api.coingecko.com/api/v3/simple/price?ids=pearl-2,alephium,ravencoin,kaspa,ethereum-classic,conflux-token,nexacoin,bitcore&vs_currencies=usd&include_24hr_change=true";
 
 // Map CoinGecko IDs back to our coin IDs
 const CG_OUR_MAP: Record<string, string> = {
@@ -25,6 +25,7 @@ const CG_OUR_MAP: Record<string, string> = {
   "ethereum-classic": "ethereum-classic",
   "conflux-token": "conflux",
   "nexacoin": "nexa",
+  "bitcore": "bitcore",
 };
 
 export function useLiveCoinData(intervalMs = 180_000) {

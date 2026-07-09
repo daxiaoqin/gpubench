@@ -181,6 +181,7 @@ export const ALGORITHM_RATIOS = [
   { id: "etchash", name: "Etchash", symbol: "ETC", unit: "MH/s", ratio: 0.00048, color: "#ef4444" },
   { id: "octopus", name: "Octopus", symbol: "CFX", unit: "MH/s", ratio: 0.00036, color: "#06b6d4" },
   { id: "nexapow", name: "NexaPow", symbol: "NEXA", unit: "MH/s", ratio: 0.00000040, color: "#a855f7" },
+  { id: "btx-matmul", name: "BTX-MatMul", symbol: "BTX", unit: "MH/s", ratio: 0.00053, color: "#14b8a6" },
 ];
 
 // WebGPU benchmark — main entry

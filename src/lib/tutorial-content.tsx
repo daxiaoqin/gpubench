@@ -227,6 +227,39 @@ export const tutorials: Tutorial[] = [
       </Content>
     ),
   },
+  {
+    title: "Bitcore (BTX) Mining Guide: Setup & Profitability",
+    slug: "bitcore-mining-guide",
+    category: "Software",
+    readTime: "9 min",
+    difficulty: "Intermediate",
+    description: "Complete guide to mining Bitcore (BTX) using the BTX-MatMul algorithm — pool setup, recommended GPUs, and profit tips.",
+    content: (
+      <Content>
+        <p><strong>Bitcore (BTX)</strong> is a UTXO-based cryptocurrency that uses the <strong>BTX-MatMul</strong> algorithm — a matrix-multiplication-heavy PoW optimized for GPU mining. It offers fast transactions and low fees.</p>
+
+        <p className="font-medium mt-4">Getting Started:</p>
+        <ol className="list-decimal pl-5 space-y-2">
+          <li><strong>Get a wallet</strong> — Download the official Bitcore Core wallet or use a web wallet like Stakenet</li>
+          <li><strong>Choose mining software</strong> — PeakMiner, SRBMiner, or WildRig all support BTX-MatMul</li>
+          <li><strong>Join a pool</strong> — Zpool or a dedicated BTX pool (see our <a href="/pools" className="text-[--accent-green] underline">Pools page</a>)</li>
+          <li><strong>Configure your miner</strong> — Set the algorithm to BTX-MatMul and point to your pool&apos;s stratum URL</li>
+        </ol>
+
+        <p className="font-medium mt-4">PeakMiner example .bat file:</p>
+        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo btx-matmul --pool stratum+tcp://btx.mine.zpool.ca:xxxx --user YOUR_BTX_ADDRESS --power-limit 260</code>
+
+        <p className="font-medium mt-4">Recommended GPUs for BTX:</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Best overall:</strong> RTX 5090 / RTX 5080 — highest raw hashrate</li>
+          <li><strong>Best efficiency:</strong> RTX 5060 Ti — excellent hashrate-per-watt</li>
+          <li><strong>Best value:</strong> RTX 4070 Super — good balance of price and performance</li>
+        </ul>
+
+        <p className="mt-3">Use our <a href="/calculator?coin=btx" className="text-[--accent-green] underline">Profitability Calculator</a> to estimate your BTX mining earnings.</p>
+      </Content>
+    ),
+  },
 ];
 
 export const categories = ["All", "Basics", "Hardware", "Software", "Strategy", "Troubleshooting"];

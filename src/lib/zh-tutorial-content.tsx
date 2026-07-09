@@ -227,6 +227,39 @@ export const zhTutorials: ZhTutorial[] = [
       </Content>
     ),
   },
+  {
+    title: "Bitcore (BTX) 挖矿指南：配置与收益",
+    slug: "bitcore-mining-guide",
+    category: "软件",
+    readTime: "9 分钟",
+    difficulty: "进阶",
+    description: "使用 BTX-MatMul 算法挖矿 Bitcore 的完整指南——矿池设置、推荐显卡、收益技巧。",
+    content: (
+      <Content>
+        <p><strong>Bitcore (BTX)</strong> 是一种基于 UTXO 的加密货币，采用 <strong>BTX-MatMul</strong> 算法——一种专为 GPU 挖矿优化的矩阵乘法工作量证明机制。交易快速，手续费低廉。</p>
+
+        <p className="font-medium mt-4">开始挖矿：</p>
+        <ol className="list-decimal pl-5 space-y-2">
+          <li><strong>准备钱包</strong> — 下载官方 Bitcore Core 钱包或使用 Stakenet 在线钱包</li>
+          <li><strong>选择挖矿软件</strong> — PeakMiner、SRBMiner 或 WildRig 都支持 BTX-MatMul</li>
+          <li><strong>加入矿池</strong> — Zpool 或专门的 BTX 矿池（查看我们的<a href="/zh/pools" className="text-[--accent-green] underline">矿池页面</a>）</li>
+          <li><strong>配置矿机</strong> — 将算法设置为 BTX-MatMul，指向矿池的 stratum 地址</li>
+        </ol>
+
+        <p className="font-medium mt-4">PeakMiner 配置示例：</p>
+        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo btx-matmul --pool stratum+tcp://btx.mine.zpool.ca:xxxx --user 你的BTX地址 --power-limit 260</code>
+
+        <p className="font-medium mt-4">BTX 推荐显卡：</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>最强性能：</strong>RTX 5090 / RTX 5080 — 最高算力</li>
+          <li><strong>最佳能效：</strong>RTX 5060 Ti — 算力功耗比出色</li>
+          <li><strong>最高性价比：</strong>RTX 4070 Super — 性能与价格的平衡</li>
+        </ul>
+
+        <p className="mt-3">使用我们的<a href="/zh/calculator?coin=btx" className="text-[--accent-green] underline">收益计算器</a>估算 BTX 挖矿收益。</p>
+      </Content>
+    ),
+  },
 ];
 
 export const zhCategories = ["全部", "基础", "硬件", "软件", "策略", "故障排除"];
