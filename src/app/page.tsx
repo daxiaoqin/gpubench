@@ -93,11 +93,11 @@ export default function HomePage() {
               <div className="text-sm text-[--text-muted]">Algorithms Supported</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[--accent-amber]}">{staticCoins.length}</div>
+              <div className="text-2xl font-bold text-[--accent-amber]">{staticCoins.length}</div>
               <div className="text-sm text-[--text-muted]">Coins Tracked</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[--accent-blue]}">
+              <div className="text-2xl font-bold text-[--accent-blue]">
                 {loading ? "Loading..." : "Live"}
               </div>
               <div className="text-sm text-[--text-muted]">Market Data</div>
