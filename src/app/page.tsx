@@ -27,7 +27,7 @@ export default function HomePage() {
         marketCap: c.marketCap,
         volume24h: c.volume24h,
         lastUpdated: new Date().toISOString(),
-      })).slice(0, 4)
+      })).slice(0, 8)
     : staticCoins.map((c) => ({
         id: c.id,
         name: c.name,
@@ -60,7 +60,7 @@ export default function HomePage() {
             </h1>
             <p className="text-lg md:text-xl text-[--text-secondary] mb-10 max-w-2xl mx-auto fade-in">
               Compare hashrates, power efficiency, and real profitability
-              across 7 algorithms. Data verified from actual mining rigs.
+              across 8 algorithms. Data verified from actual mining rigs.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in">
               <Link

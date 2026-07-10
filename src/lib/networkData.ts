@@ -124,11 +124,11 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
     }
   },
 
-  // BTX — new MatMul PoW chain (btx.dev), no public explorer API yet
+  // BTX — new MatMul PoW chain (btx.dev), real data from btxscan.io
   "btx-matmul": async () => {
     try {
-      const res = await fetch("https://btx.dev/api/chaininfo.json", {
-        signal: AbortSignal.timeout(4000),
+      const res = await fetch("https://explorer.minebtx.com/api/networkinfo", {
+        signal: AbortSignal.timeout(6000),
       });
       if (!res.ok) return null;
       const data = await res.json();
@@ -137,10 +137,25 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
       if (networkMhs <= 0) return null;
       return {
         networkHashrate: networkMhs, // MH/s
-        dailyReward: 48000, // ~48K BTX/day at 90s blocks with current emission
+        dailyReward: 19200, // ~19.2K BTX/day (960 blocks × 20 BTX)
       };
     } catch {
-      return null;
+      // Fallback: try btxscan.io API
+      try {
+        const res = await fetch("https://btxscan.io/api/network/info", {
+          signal: AbortSignal.timeout(6000),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const networkMhs = data?.networkHashrate ?? data?.hashrate ?? 0;
+        if (networkMhs <= 0) return null;
+        return {
+          networkHashrate: networkMhs,
+          dailyReward: 19200,
+        };
+      } catch {
+        return null;
+      }
     }
   },
 };
@@ -197,11 +212,11 @@ export const defaultNetworkData: Record<string, NetworkInfo> = {
     source: "Estimated (live API fallback)",
   },
   "btx-matmul": {
-    networkHashrate: 350000, // MH/s (~350 GH/s)
-    dailyReward: 48000,      // ~48K BTX/day (90s blocks)
+    networkHashrate: 372,    // MH/s — verified on btxscan.io (Difficulty 7.795 ~372 MH/s est)
+    dailyReward: 19200,      // ~19.2K BTX/day (960 blocks × 20 BTX reward, verified on btxscan.io)
     unit: "MH/s",
-    lastUpdated: null,
-    source: "Estimated (live API fallback)",
+    lastUpdated: "2026-07-10",
+    source: "btxscan.io (live estimate)",
   },
 };
 

@@ -228,26 +228,26 @@ export const tutorials: Tutorial[] = [
     ),
   },
   {
-    title: "Bitcore (BTX) Mining Guide: Setup & Profitability",
+    title: "BTX Mining Guide: Setup & Profitability",
     slug: "bitcore-mining-guide",
     category: "Software",
     readTime: "9 min",
     difficulty: "Intermediate",
-    description: "Complete guide to mining Bitcore (BTX) using the BTX-MatMul algorithm — pool setup, recommended GPUs, and profit tips.",
+    description: "Complete guide to mining BTX (btx.dev) using the BTX-MatMul algorithm — node setup, recommended GPUs, and profit tips.",
     content: (
       <Content>
-        <p><strong>Bitcore (BTX)</strong> is a UTXO-based cryptocurrency that uses the <strong>BTX-MatMul</strong> algorithm — a matrix-multiplication-heavy PoW optimized for GPU mining. It offers fast transactions and low fees.</p>
+        <p><strong>BTX</strong> is a post-quantum Layer 1 blockchain (btx.dev) that uses the <strong>BTX-MatMul</strong> algorithm — a 512×512 matrix multiplication PoW (MatMul over M31) optimized for GPU mining. Mainnet launched March 19, 2026 with 90-second blocks, 21M capped supply, and native CUDA support.</p>
 
         <p className="font-medium mt-4">Getting Started:</p>
         <ol className="list-decimal pl-5 space-y-2">
-          <li><strong>Get a wallet</strong> — Download the official Bitcore Core wallet or use a web wallet like Stakenet</li>
-          <li><strong>Choose mining software</strong> — PeakMiner, SRBMiner, or WildRig all support BTX-MatMul</li>
-          <li><strong>Join a pool</strong> — Zpool or a dedicated BTX pool (see our <a href="/pools" className="text-[--accent-green] underline">Pools page</a>)</li>
-          <li><strong>Configure your miner</strong> — Set the algorithm to BTX-MatMul and point to your pool&apos;s stratum URL</li>
+          <li><strong>Run a node</strong> — Download the official BTX node from <a href="https://btx.dev" className="underline">btx.dev</a> (Linux/macOS, with CUDA GPU support)</li>
+          <li><strong>Get a wallet</strong> — BTX node includes a built-in wallet; or use a compatible wallet from the BTX ecosystem</li>
+          <li><strong>Mine directly</strong> — BTX mining is built into the node software via CUDA (use <code>--mine</code> flag)</li>
+          <li><strong>Or use a miner</strong> — PeakMiner v1.0.15+ and SRBMiner support BTX-MatMul (see our <a href="/pools" className="text-[--accent-green] underline">Pools page</a> for stratum pools)</li>
         </ol>
 
         <p className="font-medium mt-4">PeakMiner example .bat file:</p>
-        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo btx-matmul --pool stratum+tcp://btx.mine.zpool.ca:xxxx --user YOUR_BTX_ADDRESS --power-limit 260</code>
+        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --coin btx --pool btx-hk.lproute.com:8660 --wallet YOUR_BTX_ADDRESS --power-limit 260</code>
 
         <p className="font-medium mt-4">Recommended GPUs for BTX:</p>
         <ul className="list-disc pl-5 space-y-1">

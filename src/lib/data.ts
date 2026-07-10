@@ -34,7 +34,7 @@ export const algorithms = [
   { id: "etchash", name: "Etchash", symbol: "ETC", unit: "MH/s" },
   { id: "octopus", name: "Octopus", symbol: "CFX", unit: "MH/s" },
   { id: "nexapow", name: "NexaPow", symbol: "NEXA", unit: "MH/s" },
-  { id: "btx-matmul", name: "BTX-MatMul", symbol: "BTX", unit: "MH/s" },
+  { id: "btx-matmul", name: "BTX-MatMul", symbol: "BTX", unit: "KN/s" },
 ];
 
 // GPU Database — tested & verified
@@ -48,7 +48,7 @@ export const gpus: GpuData[] = [
     tdp: 575,
     price: 1999,
     memory: "32 GB GDDR7",
-    hashrates: { pearlhash: 310, blake3: 5.2, kawpow: 88, kheavyhash: 6.8, etchash: 140, octopus: 95, nexapow: 210, "btx-matmul": 165 },
+    hashrates: { pearlhash: 310, blake3: 5.2, kawpow: 88, kheavyhash: 6.8, etchash: 140, octopus: 95, nexapow: 210, "btx-matmul": 23.0 },
   },
   {
     id: "rtx-5080",
@@ -58,7 +58,7 @@ export const gpus: GpuData[] = [
     tdp: 360,
     price: 999,
     memory: "16 GB GDDR7",
-    hashrates: { pearlhash: 200, blake3: 3.2, kawpow: 62, kheavyhash: 4.5, etchash: 96, octopus: 72, nexapow: 165 , "btx-matmul": 132}
+    hashrates: { pearlhash: 200, blake3: 3.2, kawpow: 62, kheavyhash: 4.5, etchash: 96, octopus: 72, nexapow: 165 , "btx-matmul": 12.0}
   },
   {
     id: "rtx-5070-ti",
@@ -68,7 +68,7 @@ export const gpus: GpuData[] = [
     tdp: 300,
     price: 749,
     memory: "16 GB GDDR7",
-    hashrates: { pearlhash: 150, blake3: 2.4, kawpow: 48, kheavyhash: 3.4, etchash: 78, octopus: 56, nexapow: 128 , "btx-matmul": 105}
+    hashrates: { pearlhash: 150, blake3: 2.4, kawpow: 48, kheavyhash: 3.4, etchash: 78, octopus: 56, nexapow: 128 , "btx-matmul": 9.58}
   },
   {
     id: "rtx-5070",
@@ -78,7 +78,7 @@ export const gpus: GpuData[] = [
     tdp: 250,
     price: 549,
     memory: "12 GB GDDR7",
-    hashrates: { pearlhash: 115, blake3: 1.9, kawpow: 38, kheavyhash: 2.6, etchash: 62, octopus: 44, nexapow: 102 , "btx-matmul": 85}
+    hashrates: { pearlhash: 115, blake3: 1.9, kawpow: 38, kheavyhash: 2.6, etchash: 62, octopus: 44, nexapow: 102 , "btx-matmul": 4.79}
   },
   {
     id: "rtx-5060-ti",
@@ -88,7 +88,7 @@ export const gpus: GpuData[] = [
     tdp: 180,
     price: 429,
     memory: "16 GB GDDR7",
-    hashrates: { pearlhash: 82, blake3: 1.3, kawpow: 28, kheavyhash: 1.9, etchash: 46, octopus: 33, nexapow: 76 , "btx-matmul": 65}
+    hashrates: { pearlhash: 82, blake3: 1.3, kawpow: 28, kheavyhash: 1.9, etchash: 46, octopus: 33, nexapow: 76 , "btx-matmul": 3.33}
   },
   {
     id: "rtx-5060",
@@ -98,7 +98,7 @@ export const gpus: GpuData[] = [
     tdp: 150,
     price: 299,
     memory: "8 GB GDDR7",
-    hashrates: { pearlhash: 62, blake3: 1.0, kawpow: 22, kheavyhash: 1.5, etchash: 38, octopus: 27, nexapow: 58 , "btx-matmul": 50}
+    hashrates: { pearlhash: 62, blake3: 1.0, kawpow: 22, kheavyhash: 1.5, etchash: 38, octopus: 27, nexapow: 58 , "btx-matmul": 2.00},
   },
 
   // === RTX 40 Series (Ada Lovelace) ===
@@ -110,8 +110,10 @@ export const gpus: GpuData[] = [
     tdp: 450,
     price: 1599,
     memory: "24 GB GDDR6X",
-    hashrates: { pearlhash: 280, blake3: 4.5, kawpow: 82, kheavyhash: 6.2, etchash: 132, octopus: 88, nexapow: 198 , "btx-matmul": 150}
+    hashrates: { pearlhash: 280, blake3: 4.5, kawpow: 82, kheavyhash: 6.2, etchash: 132, octopus: 88, nexapow: 198 , "btx-matmul": 17.0},
   },
+
+  // === RTX 40 Series (Ada Lovelace) ===
   {
     id: "rtx-4080-super",
     name: "RTX 4080 Super",
@@ -120,7 +122,7 @@ export const gpus: GpuData[] = [
     tdp: 320,
     price: 999,
     memory: "16 GB GDDR6X",
-    hashrates: { pearlhash: 168, blake3: 2.7, kawpow: 55, kheavyhash: 3.8, etchash: 88, octopus: 64, nexapow: 148 , "btx-matmul": 115}
+    hashrates: { pearlhash: 168, blake3: 2.7, kawpow: 55, kheavyhash: 3.8, etchash: 88, octopus: 64, nexapow: 148 , "btx-matmul": 14.0}
   },
   {
     id: "rtx-4070-ti-super",
@@ -130,7 +132,7 @@ export const gpus: GpuData[] = [
     tdp: 285,
     price: 799,
     memory: "16 GB GDDR6X",
-    hashrates: { pearlhash: 125, blake3: 2.0, kawpow: 42, kheavyhash: 2.9, etchash: 68, octopus: 50, nexapow: 112 , "btx-matmul": 95}
+    hashrates: { pearlhash: 125, blake3: 2.0, kawpow: 42, kheavyhash: 2.9, etchash: 68, octopus: 50, nexapow: 112 , "btx-matmul": 12.0}
   },
   {
     id: "rtx-4070-super",
@@ -140,7 +142,7 @@ export const gpus: GpuData[] = [
     tdp: 220,
     price: 599,
     memory: "12 GB GDDR6X",
-    hashrates: { pearlhash: 98, blake3: 1.6, kawpow: 34, kheavyhash: 2.2, etchash: 56, octopus: 40, nexapow: 92 , "btx-matmul": 78}
+    hashrates: { pearlhash: 98, blake3: 1.6, kawpow: 34, kheavyhash: 2.2, etchash: 56, octopus: 40, nexapow: 92 , "btx-matmul": 10.0}
   },
   {
     id: "rtx-4070",
@@ -150,7 +152,7 @@ export const gpus: GpuData[] = [
     tdp: 200,
     price: 549,
     memory: "12 GB GDDR6X",
-    hashrates: { pearlhash: 85, blake3: 1.4, kawpow: 30, kheavyhash: 1.9, etchash: 50, octopus: 36, nexapow: 80 , "btx-matmul": 65}
+    hashrates: { pearlhash: 85, blake3: 1.4, kawpow: 30, kheavyhash: 1.9, etchash: 50, octopus: 36, nexapow: 80 , "btx-matmul": 8.5}
   },
   {
     id: "rtx-4060-ti",
@@ -160,7 +162,7 @@ export const gpus: GpuData[] = [
     tdp: 160,
     price: 399,
     memory: "8 GB GDDR6",
-    hashrates: { pearlhash: 60, blake3: 0.95, kawpow: 21, kheavyhash: 1.3, etchash: 36, octopus: 26, nexapow: 56 , "btx-matmul": 50}
+    hashrates: { pearlhash: 60, blake3: 0.95, kawpow: 21, kheavyhash: 1.3, etchash: 36, octopus: 26, nexapow: 56 , "btx-matmul": 6.5}
   },
   {
     id: "rtx-4060",
@@ -170,7 +172,7 @@ export const gpus: GpuData[] = [
     tdp: 115,
     price: 299,
     memory: "8 GB GDDR6",
-    hashrates: { pearlhash: 44, blake3: 0.70, kawpow: 16, kheavyhash: 0.95, etchash: 28, octopus: 20, nexapow: 42 , "btx-matmul": 38}
+    hashrates: { pearlhash: 44, blake3: 0.70, kawpow: 16, kheavyhash: 0.95, etchash: 28, octopus: 20, nexapow: 42 , "btx-matmul": 5.0}
   },
 
   // === RTX 30 Series (Ampere) ===
@@ -182,7 +184,7 @@ export const gpus: GpuData[] = [
     tdp: 450,
     price: 1099,
     memory: "24 GB GDDR6X",
-    hashrates: { pearlhash: 195, blake3: 3.0, kawpow: 62, kheavyhash: 4.2, etchash: 98, octopus: 68, nexapow: 155 , "btx-matmul": 125}
+    hashrates: { pearlhash: 195, blake3: 3.0, kawpow: 62, kheavyhash: 4.2, etchash: 98, octopus: 68, nexapow: 155 , "btx-matmul": 15.0}
   },
   {
     id: "rtx-3090",
@@ -192,7 +194,7 @@ export const gpus: GpuData[] = [
     tdp: 350,
     price: 899,
     memory: "24 GB GDDR6X",
-    hashrates: { pearlhash: 150, blake3: 2.4, kawpow: 52, kheavyhash: 3.4, etchash: 80, octopus: 58, nexapow: 130 , "btx-matmul": 108}
+    hashrates: { pearlhash: 150, blake3: 2.4, kawpow: 52, kheavyhash: 3.4, etchash: 80, octopus: 58, nexapow: 130 , "btx-matmul": 13.0}
   },
   {
     id: "rtx-3080-ti",
@@ -202,7 +204,7 @@ export const gpus: GpuData[] = [
     tdp: 350,
     price: 749,
     memory: "12 GB GDDR6X",
-    hashrates: { pearlhash: 128, blake3: 2.0, kawpow: 45, kheavyhash: 2.9, etchash: 72, octopus: 52, nexapow: 118 , "btx-matmul": 95}
+    hashrates: { pearlhash: 128, blake3: 2.0, kawpow: 45, kheavyhash: 2.9, etchash: 72, octopus: 52, nexapow: 118 , "btx-matmul": 12.0}
   },
   {
     id: "rtx-3080",
@@ -212,7 +214,7 @@ export const gpus: GpuData[] = [
     tdp: 320,
     price: 549,
     memory: "10 GB GDDR6X",
-    hashrates: { pearlhash: 108, blake3: 1.7, kawpow: 38, kheavyhash: 2.4, etchash: 62, octopus: 44, nexapow: 100 , "btx-matmul": 82}
+    hashrates: { pearlhash: 108, blake3: 1.7, kawpow: 38, kheavyhash: 2.4, etchash: 62, octopus: 44, nexapow: 100 , "btx-matmul": 10.5}
   },
   {
     id: "rtx-3070-ti",
@@ -222,7 +224,7 @@ export const gpus: GpuData[] = [
     tdp: 290,
     price: 399,
     memory: "8 GB GDDR6X",
-    hashrates: { pearlhash: 78, blake3: 1.2, kawpow: 28, kheavyhash: 1.8, etchash: 46, octopus: 34, nexapow: 74 , "btx-matmul": 72}
+    hashrates: { pearlhash: 78, blake3: 1.2, kawpow: 28, kheavyhash: 1.8, etchash: 46, octopus: 34, nexapow: 74 , "btx-matmul": 9.0}
   },
   {
     id: "rtx-3070",
@@ -232,7 +234,7 @@ export const gpus: GpuData[] = [
     tdp: 220,
     price: 329,
     memory: "8 GB GDDR6",
-    hashrates: { pearlhash: 62, blake3: 1.0, kawpow: 24, kheavyhash: 1.5, etchash: 38, octopus: 28, nexapow: 60 , "btx-matmul": 60}
+    hashrates: { pearlhash: 62, blake3: 1.0, kawpow: 24, kheavyhash: 1.5, etchash: 38, octopus: 28, nexapow: 60 , "btx-matmul": 7.5}
   },
   {
     id: "rtx-3060-ti",
@@ -242,7 +244,7 @@ export const gpus: GpuData[] = [
     tdp: 200,
     price: 269,
     memory: "8 GB GDDR6",
-    hashrates: { pearlhash: 50, blake3: 0.80, kawpow: 20, kheavyhash: 1.2, etchash: 32, octopus: 24, nexapow: 48 , "btx-matmul": 50}
+    hashrates: { pearlhash: 50, blake3: 0.80, kawpow: 20, kheavyhash: 1.2, etchash: 32, octopus: 24, nexapow: 48 , "btx-matmul": 6.5}
   },
 
   // === AMD RDNA 3 ===
@@ -254,7 +256,7 @@ export const gpus: GpuData[] = [
     tdp: 355,
     price: 849,
     memory: "24 GB GDDR6",
-    hashrates: { pearlhash: 140, blake3: 4.8, kawpow: 78, kheavyhash: 3.2, etchash: 110, octopus: 82, nexapow: 175 , "btx-matmul": 125}
+    hashrates: { pearlhash: 140, blake3: 4.8, kawpow: 78, kheavyhash: 3.2, etchash: 110, octopus: 82, nexapow: 175 , "btx-matmul": 15.0}
   },
   {
     id: "rx-7900-xt",
@@ -264,7 +266,7 @@ export const gpus: GpuData[] = [
     tdp: 315,
     price: 699,
     memory: "20 GB GDDR6",
-    hashrates: { pearlhash: 118, blake3: 4.0, kawpow: 66, kheavyhash: 2.7, etchash: 94, octopus: 70, nexapow: 148 , "btx-matmul": 105}
+    hashrates: { pearlhash: 118, blake3: 4.0, kawpow: 66, kheavyhash: 2.7, etchash: 94, octopus: 70, nexapow: 148 , "btx-matmul": 12.5}
   },
   {
     id: "rx-7800-xt",
@@ -274,7 +276,7 @@ export const gpus: GpuData[] = [
     tdp: 263,
     price: 499,
     memory: "16 GB GDDR6",
-    hashrates: { pearlhash: 88, blake3: 2.6, kawpow: 48, kheavyhash: 2.0, etchash: 68, octopus: 52, nexapow: 110 , "btx-matmul": 78}
+    hashrates: { pearlhash: 88, blake3: 2.6, kawpow: 48, kheavyhash: 2.0, etchash: 68, octopus: 52, nexapow: 110 , "btx-matmul": 10.0}
   },
   {
     id: "rx-7700-xt",
@@ -284,7 +286,7 @@ export const gpus: GpuData[] = [
     tdp: 245,
     price: 399,
     memory: "12 GB GDDR6",
-    hashrates: { pearlhash: 68, blake3: 1.8, kawpow: 36, kheavyhash: 1.5, etchash: 52, octopus: 40, nexapow: 84 , "btx-matmul": 60}
+    hashrates: { pearlhash: 68, blake3: 1.8, kawpow: 36, kheavyhash: 1.5, etchash: 52, octopus: 40, nexapow: 84 , "btx-matmul": 7.5}
   },
   {
     id: "rx-7600-xt",
@@ -294,7 +296,7 @@ export const gpus: GpuData[] = [
     tdp: 190,
     price: 329,
     memory: "16 GB GDDR6",
-    hashrates: { pearlhash: 48, blake3: 1.1, kawpow: 24, kheavyhash: 1.0, etchash: 36, octopus: 28, nexapow: 60 , "btx-matmul": 42}
+    hashrates: { pearlhash: 48, blake3: 1.1, kawpow: 24, kheavyhash: 1.0, etchash: 36, octopus: 28, nexapow: 60 , "btx-matmul": 5.5}
   },
 ];
 

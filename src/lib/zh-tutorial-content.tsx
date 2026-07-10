@@ -228,26 +228,26 @@ export const zhTutorials: ZhTutorial[] = [
     ),
   },
   {
-    title: "Bitcore (BTX) 挖矿指南：配置与收益",
+    title: "BTX 挖矿指南：配置与收益",
     slug: "bitcore-mining-guide",
     category: "软件",
     readTime: "9 分钟",
     difficulty: "进阶",
-    description: "使用 BTX-MatMul 算法挖矿 Bitcore 的完整指南——矿池设置、推荐显卡、收益技巧。",
+    description: "使用 BTX-MatMul 算法挖矿 BTX（btx.dev）的完整指南——节点设置、推荐显卡、收益技巧。",
     content: (
       <Content>
-        <p><strong>Bitcore (BTX)</strong> 是一种基于 UTXO 的加密货币，采用 <strong>BTX-MatMul</strong> 算法——一种专为 GPU 挖矿优化的矩阵乘法工作量证明机制。交易快速，手续费低廉。</p>
+        <p><strong>BTX</strong> 是一种后量子 Layer 1 区块链（btx.dev），采用 <strong>BTX-MatMul</strong> 算法——512×512 矩阵乘法 PoW（M31 域上的 MatMul），专为 GPU 挖矿优化。主网于 2026 年 3 月 19 日上线，90 秒出块，总供应 2100 万枚，原生支持 CUDA 挖矿。</p>
 
         <p className="font-medium mt-4">开始挖矿：</p>
         <ol className="list-decimal pl-5 space-y-2">
-          <li><strong>准备钱包</strong> — 下载官方 Bitcore Core 钱包或使用 Stakenet 在线钱包</li>
-          <li><strong>选择挖矿软件</strong> — PeakMiner、SRBMiner 或 WildRig 都支持 BTX-MatMul</li>
-          <li><strong>加入矿池</strong> — Zpool 或专门的 BTX 矿池（查看我们的<a href="/zh/pools" className="text-[--accent-green] underline">矿池页面</a>）</li>
-          <li><strong>配置矿机</strong> — 将算法设置为 BTX-MatMul，指向矿池的 stratum 地址</li>
+          <li><strong>运行节点</strong> — 从 <a href="https://btx.dev" className="underline">btx.dev</a> 下载官方 BTX 节点（Linux/macOS，支持 CUDA GPU）</li>
+          <li><strong>准备钱包</strong> — BTX 节点内置钱包功能</li>
+          <li><strong>直接挖矿</strong> — BTX 挖矿内置于节点软件，使用 <code>--mine</code> 参数启动 CUDA GPU 挖矿</li>
+          <li><strong>或使用第三方矿工</strong> — PeakMiner v1.0.15+ 和 SRBMiner 支持 BTX-MatMul（查看我们的<a href="/zh/pools" className="text-[--accent-green] underline">矿池页面</a>）</li>
         </ol>
 
         <p className="font-medium mt-4">PeakMiner 配置示例：</p>
-        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --algo btx-matmul --pool stratum+tcp://btx.mine.zpool.ca:xxxx --user 你的BTX地址 --power-limit 260</code>
+        <code className="block bg-[--bg-secondary] p-2 rounded mt-1 text-xs">peakminer.exe --coin btx --pool btx-hk.lproute.com:8660 --wallet 你的BTX地址 --power-limit 260</code>
 
         <p className="font-medium mt-4">BTX 推荐显卡：</p>
         <ul className="list-disc pl-5 space-y-1">
