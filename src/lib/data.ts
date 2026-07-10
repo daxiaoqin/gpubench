@@ -385,16 +385,16 @@ export const coins: CoinData[] = [
     color: "#f97316",
   },
   {
-    id: "bitcore",
-    name: "Bitcore",
+    id: "btx",
+    name: "BTX",
     symbol: "BTX",
     algorithm: "BTX-MatMul",
-    price: 0.18,
-    priceChange24h: 1.5,
-    marketCap: 3400000,
-    volume24h: 285000,
+    price: 5.00,
+    priceChange24h: -35.0,
+    marketCap: 105000000,
+    volume24h: 122329,
     hashrateUnit: "MH/s",
-    color: "#14b8a6",
+    color: "#2dd4bf",
   },
 ];
 

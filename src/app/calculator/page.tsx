@@ -21,7 +21,7 @@ const algoToCoinId: Record<string, string> = {
   etchash: "ethereum-classic",
   octopus: "conflux",
   nexapow: "nexa",
-  "btx-matmul": "bitcore",
+  "btx-matmul": "btx",
 };
 
 export default function CalculatorPage() {
@@ -108,7 +108,7 @@ export default function CalculatorPage() {
         <h1 className="text-3xl font-bold">Mining Profitability Calculator</h1>
         <p className="text-[--text-secondary] mt-1">
           Estimate daily profit for any GPU and algorithm combination.
-          {liveCoin && <span className="text-[--accent-green]"> Live prices active.</span>}
+          {liveCoin && <span className="text-[--accent-teal]"> Live prices active.</span>}
         </p>
         {(coinLoading || networkLoading) && (
           <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-sm text-blue-700 dark:text-blue-400 flex items-center gap-3">

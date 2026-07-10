@@ -124,19 +124,20 @@ const fetchers: Record<string, () => Promise<{ networkHashrate: number; dailyRew
     }
   },
 
-  // Bitcore — via public explorer API
+  // BTX — new MatMul PoW chain (btx.dev), no public explorer API yet
   "btx-matmul": async () => {
     try {
-      const res = await fetch("https://explorer.bitcore.cc/api/networkinfo", {
+      const res = await fetch("https://btx.dev/api/chaininfo.json", {
         signal: AbortSignal.timeout(4000),
       });
       if (!res.ok) return null;
       const data = await res.json();
+      // Try common field names for chain info
       const networkMhs = data?.networkhashrate ?? data?.hashrate ?? 0;
       if (networkMhs <= 0) return null;
       return {
         networkHashrate: networkMhs, // MH/s
-        dailyReward: 72000, // ~72K BTX/day
+        dailyReward: 48000, // ~48K BTX/day at 90s blocks with current emission
       };
     } catch {
       return null;
@@ -197,7 +198,7 @@ export const defaultNetworkData: Record<string, NetworkInfo> = {
   },
   "btx-matmul": {
     networkHashrate: 350000, // MH/s (~350 GH/s)
-    dailyReward: 72000,
+    dailyReward: 48000,      // ~48K BTX/day (90s blocks)
     unit: "MH/s",
     lastUpdated: null,
     source: "Estimated (live API fallback)",

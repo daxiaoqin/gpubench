@@ -13,7 +13,7 @@ const COIN_PRICES: Record<string, number> = {
   etchash: 7.25,
   octopus: 0.0455,
   nexapow: 0.00000040,
-  "btx-matmul": 0.18,
+  "btx-matmul": 5.00,
 };
 
 type Phase = "idle" | "detecting" | "running" | "done" | "error" | "submitting" | "submitted";
@@ -164,8 +164,8 @@ export default function BenchmarkPage() {
           <span
             className={`text-sm px-3 py-1 rounded-full font-medium ${
               typeof navigator !== "undefined" && navigator.gpu
-                ? "bg-green-500/20 text-green-400"
-                : "bg-yellow-500/20 text-yellow-400"
+                ? "bg-emerald-500/20 text-emerald-400"
+                : "bg-amber-500/20 text-amber-400"
             }`}
           >
             {typeof navigator !== "undefined" && navigator.gpu
@@ -193,7 +193,7 @@ export default function BenchmarkPage() {
                 key={gpu.index}
                 className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedGPUIndex === gpu.index
-                    ? "border-[--accent-green] bg-[--accent-green]/5"
+                    ? "border-[--accent-teal] bg-[--accent-teal]/5"
                     : "border-[--border-color] hover:border-[--text-muted]"
                 }`}
               >
@@ -202,7 +202,7 @@ export default function BenchmarkPage() {
                   name="gpu-select"
                   checked={selectedGPUIndex === gpu.index}
                   onChange={() => setSelectedGPUIndex(gpu.index)}
-                  className="accent-[--accent-green]"
+                  className="accent-[--accent-teal]"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-[--text-primary]">{gpu.label}</div>
@@ -267,12 +267,12 @@ export default function BenchmarkPage() {
 
       {/* Error */}
       {phase === "error" && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-bold text-red-400 mb-2">⚠️ Benchmark Failed</h3>
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-6 mb-8">
+          <h3 className="text-lg font-bold text-rose-400 mb-2">⚠️ Benchmark Failed</h3>
           <p className="text-[--text-muted]">{errorMsg}</p>
           <button
             onClick={startBench}
-            className="mt-4 px-6 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors"
+            className="mt-4 px-6 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg transition-colors"
           >
             Retry
           </button>
@@ -302,7 +302,7 @@ export default function BenchmarkPage() {
               <div>
                 <span className="text-xs text-[--text-muted] uppercase tracking-wider">Confidence</span>
                 <p className="text-lg font-bold mt-1"
-                   style={{ color: result.confidence > 0.7 ? "#22c55e" : result.confidence > 0.4 ? "#eab308" : "#ef4444" }}>
+                   style={{ color: result.confidence > 0.7 ? "#4ade80" : result.confidence > 0.4 ? "#fbbf24" : "#f87171" }}>
                   {Math.round(result.confidence * 100)}%
                 </p>
               </div>
@@ -367,7 +367,7 @@ export default function BenchmarkPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <span className={`font-mono font-bold ${
-                            dailyRevenue > 0.5 ? "text-green-400" : dailyRevenue > 0.1 ? "text-yellow-400" : "text-[--text-muted]"
+                            dailyRevenue > 0.5 ? "text-emerald-400" : dailyRevenue > 0.1 ? "text-amber-400" : "text-[--text-muted]"
                           }`}>
                             ${dailyRevenue.toFixed(2)}
                           </span>
@@ -413,7 +413,7 @@ export default function BenchmarkPage() {
                 )}
               </button>
               {submitError && (
-                <p className="text-xs text-red-400 mt-2">Submit failed: {submitError}</p>
+                <p className="text-xs text-rose-400 mt-2">Submit failed: {submitError}</p>
               )}
               <p className="text-xs text-[--text-muted] mt-2">
                 Your GPU model and hashrate will be added to our global leaderboard (anonymous).

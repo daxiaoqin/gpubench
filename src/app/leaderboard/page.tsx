@@ -192,8 +192,8 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-6 py-4 text-center hidden sm:table-cell">
                       <span className={`text-xs ${
-                        entry.confidence >= 0.8 ? "text-green-400" :
-                        entry.confidence >= 0.5 ? "text-yellow-400" : "text-red-400"
+                        entry.confidence >= 0.8 ? "text-emerald-400" :
+                        entry.confidence >= 0.5 ? "text-amber-400" : "text-rose-400"
                       }`}>
                         {formatConfidence(entry.confidence)}
                       </span>

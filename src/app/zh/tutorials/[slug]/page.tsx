@@ -39,9 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const badgeColors: Record<string, string> = {
   "基础": "bg-blue-500/10 text-blue-400",
   "硬件": "bg-purple-500/10 text-purple-400",
-  "软件": "bg-green-500/10 text-green-400",
+  "软件": "bg-emerald-500/10 text-emerald-400",
   "策略": "bg-orange-500/10 text-orange-400",
-  "故障排除": "bg-red-500/10 text-red-400",
+  "故障排除": "bg-rose-500/10 text-rose-400",
 };
 
 export default async function ZhTutorialPage({ params }: Props) {

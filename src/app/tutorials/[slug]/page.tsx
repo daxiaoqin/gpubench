@@ -44,9 +44,9 @@ export default async function TutorialPage({ params }: Props) {
   const badgeColors: Record<string, string> = {
     Basics: "bg-blue-500/10 text-blue-400",
     Hardware: "bg-purple-500/10 text-purple-400",
-    Software: "bg-green-500/10 text-green-400",
+    Software: "bg-emerald-500/10 text-emerald-400",
     Strategy: "bg-orange-500/10 text-orange-400",
-    Troubleshooting: "bg-red-500/10 text-red-400",
+    Troubleshooting: "bg-rose-500/10 text-rose-400",
   };
 
   return (

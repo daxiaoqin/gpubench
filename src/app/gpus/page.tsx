@@ -190,8 +190,8 @@ export default function GpusPage() {
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-1.5 py-0.5 rounded ${
                         gpu.manufacturer === "NVIDIA"
-                          ? "bg-green-900/30 text-green-400"
-                          : "bg-red-900/30 text-red-400"
+                          ? "bg-emerald-900/30 text-emerald-400"
+                          : "bg-rose-900/30 text-rose-400"
                       }`}>
                         {gpu.manufacturer === "NVIDIA" ? "N" : "A"}
                       </span>

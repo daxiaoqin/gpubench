@@ -64,8 +64,8 @@ export default function NavBar() {
               href="/leaderboard"
               className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all font-medium ${
                 pathname === "/leaderboard"
-                  ? "text-amber-400 bg-amber-500/10"
-                  : "text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10"
+                  ? "text-purple-400 bg-purple-500/10"
+                  : "text-purple-400/80 hover:text-purple-400 hover:bg-purple-500/10"
               }`}
             >
               {isZh ? "🏅 排行榜" : "🏅 Leaderboard"}
